@@ -19,9 +19,11 @@ class Game:
         self.screen.fill((255, 255, 255))
 
         self.player.draw(self.screen)
+        self.player.projectile_group.draw(self.screen)
 
     def update(self):
         self.player.update()
+        self.player.projectile_group.update()
 
     def run(self):
         self.running = True
