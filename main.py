@@ -14,9 +14,10 @@ class Game:
         self.clock = pygame.time.Clock()
 
         self.event_handler = EventHandler()
+
         self.player = PlayerTank(self.screen_size)
 
-        self.enemy_wizard = Wizard(self.screen_size)
+        self.enemy_wizard = Wizard(self.screen_size, self.player)
 
     def draw(self):
         self.screen.fill((255, 255, 255))
@@ -25,12 +26,14 @@ class Game:
         self.player.projectile_group.draw(self.screen)
 
         self.enemy_wizard.draw(self.screen)
+        self.enemy_wizard.fire_ball_group.draw(self.screen)
 
     def update(self):
         self.player.update()
         self.player.projectile_group.update()
 
         self.enemy_wizard.update()
+        self.enemy_wizard.fire_ball_group.update()
 
     def run(self):
         self.running = True
