@@ -4,13 +4,18 @@ import pygame
 
 from helper_functions import load_image, load_sprite_sheet
 
-class Wizard:
+class Wizard(pygame.sprite.Sprite):
     def __init__(self, screen_size, player_position):
+        super().__init__()
         self.screen_size = screen_size
         self.player_position = player_position
 
         self.image = load_sprite_sheet("enemies/wizard_idle", frame=0, width=40, height=60, scale=3, colour=(0, 0, 0))
         self.rect = self.image.get_rect(centerx=self.screen_size[0] // 2, top=0)
+
+        # Enemy stats
+        self.max_health = 1000
+        self.health = 100
 
         # Fire ball
         self.fire_ball_group = pygame.sprite.Group()
@@ -24,13 +29,17 @@ class Wizard:
 
     def combat_logic(self):
         current_time = pygame.time.get_ticks() / 1000
-        print(current_time)
 
         # Fire ball
         if current_time >= self.fire_ball_interval:
             fire_ball = FireBall(self.rect.center, self.player_position.rect.center)
             self.fire_ball_group.add(fire_ball)
             self.fire_ball_interval = current_time + 2
+
+    def decrease_health(self, damage):
+        self.health -= damage
+        if self.health <= 0:
+            self.kill()
 
     def animate_sprite(self):
         self.animation_timer += 1

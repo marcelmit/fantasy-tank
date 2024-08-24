@@ -3,8 +3,9 @@ from pygame.locals import *
 
 from helper_functions import load_image
 
-class PlayerTank:
+class PlayerTank(pygame.sprite.Sprite):
     def __init__(self, screen_size):
+        super().__init__()
         self.screen_size = screen_size
         self.direction = "up"
 
@@ -13,8 +14,14 @@ class PlayerTank:
         self.rect = self.image.get_rect(center=(self.screen_size[0] // 2, self.screen_size[1] // 2))
 
         # Player stats
+        self.max_health = 200
+        self.health = 100
         self.velocity = 10
         self.rocket_ammo = 5
+
+        # Player invulnerability duration after taking damage.
+        self.invulnerability_duration = 2
+        self.last_hit_time = 0
 
         # Cooldown for the shoot method.
         self.projectile_group = pygame.sprite.Group()
@@ -130,6 +137,11 @@ class PlayerTank:
 
             self.projectile_group.add(rocket)
             self.last_shot_time = current_time
+
+    def decrease_health(self, damage):
+        self.health -= damage
+        if self.health <= 0:
+            self.kill()
         
     def draw(self, surface):
         surface.blit(self.image, self.rect)
@@ -146,8 +158,10 @@ class PlayerProjectile(pygame.sprite.Sprite):
 
         if is_rocket:
             self.original_image = load_image("player/player_tank_rocket")
+            self.type = "rocket"
         else:
             self.original_image = load_image("player/player_tank_cannon")
+            self.type = "cannon"
 
         self.image = self.original_image
         self.rect = self.image.get_rect(center=(x_pos, y_pos))
