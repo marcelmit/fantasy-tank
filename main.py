@@ -5,19 +5,26 @@ import pygame
 from events import EventHandler
 from player import PlayerTank
 from enemies import Wizard
+from ui_elements import UI, MenuManager
 
 class Game:
     def __init__(self):
+        pygame.init()
         pygame.display.set_caption("Fantasy Tank")
-        self.screen = pygame.display.set_mode((1800, 800))
+        self.screen = pygame.display.set_mode((1920, 1080)) # 1920, 1080 > 1600, 900 > 1280, 720 > 960, 540
+        #self.screen = pygame.display.set_mode((960, 540))
         self.screen_size = self.screen.get_size()
         self.clock = pygame.time.Clock()
+        self.resolution = 1
+        self.game_state = "menu"
+        UI.init(self)
 
         self.event_handler = EventHandler()
+        self.menu_manager = MenuManager(self)
 
-        self.player = PlayerTank(self.screen_size)
+        self.player = PlayerTank(self, self.screen_size)
 
-        self.enemy_wizard = Wizard(self.screen_size, self.player)
+        self.enemy_wizard = Wizard(self, self.screen_size, self.player)
         self.enemy_group = pygame.sprite.Group()
         self.enemy_group.add(self.enemy_wizard)
 
@@ -39,21 +46,27 @@ class Game:
                 self.player.decrease_health(15)
                 self.player.last_hit_time = current_time
 
+    def update(self):
+        if not self.game_state == "gameplay":
+            self.menu_manager.update()
+        else:
+            self.player.update()
+            self.player.projectile_group.update()
+
+            self.enemy_wizard.update()
+            self.enemy_wizard.fire_ball_group.update()
+
     def draw(self):
         self.screen.fill((255, 255, 255))
 
-        self.player.draw(self.screen)
-        self.player.projectile_group.draw(self.screen)
+        if not self.game_state == "gameplay":
+            self.menu_manager.draw()
+        else:
+            self.player.draw(self.screen)
+            self.player.projectile_group.draw(self.screen)
 
-        self.enemy_wizard.draw(self.screen)
-        self.enemy_wizard.fire_ball_group.draw(self.screen)
-
-    def update(self):
-        self.player.update()
-        self.player.projectile_group.update()
-
-        self.enemy_wizard.update()
-        self.enemy_wizard.fire_ball_group.update()
+            self.enemy_wizard.draw(self.screen)
+            self.enemy_wizard.fire_ball_group.draw(self.screen)
 
     def run(self):
         self.running = True
@@ -65,8 +78,8 @@ class Game:
                 self.running = False
 
             self.collisions()
-            self.draw()
             self.update()
+            self.draw()
 
             pygame.display.update()
             self.clock.tick(60)

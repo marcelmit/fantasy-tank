@@ -5,15 +5,16 @@ import pygame
 from helper_functions import load_image, load_sprite_sheet
 
 class Wizard(pygame.sprite.Sprite):
-    def __init__(self, screen_size, player_position):
+    def __init__(self, game, screen_size, player_position):
         super().__init__()
+        self.game = game
         self.screen_size = screen_size
         self.player_position = player_position
 
         self.image = load_sprite_sheet("enemies/wizard_idle", frame=0, width=40, height=60, scale=3, colour=(0, 0, 0))
         self.rect = self.image.get_rect(centerx=self.screen_size[0] // 2, top=0)
 
-        # Enemy stats
+        # Wizard stats
         self.max_health = 1000
         self.health = 100
 
@@ -40,6 +41,7 @@ class Wizard(pygame.sprite.Sprite):
         self.health -= damage
         if self.health <= 0:
             self.kill()
+            self.game.game_state = "defeat"
 
     def animate_sprite(self):
         self.animation_timer += 1
@@ -53,12 +55,12 @@ class Wizard(pygame.sprite.Sprite):
 
             self.image = load_sprite_sheet("enemies/wizard_idle", frame=self.animation_frame, width=40, height=60, scale=3, colour=(0, 0, 0))
 
-    def draw(self, surface):
-        surface.blit(self.image, self.rect)
-
     def update(self):
         self.combat_logic()
         self.animate_sprite()
+
+    def draw(self, surface):
+        surface.blit(self.image, self.rect)
 
 class FireBall(pygame.sprite.Sprite):
     def __init__(self, enemy_position, player_position):
@@ -75,8 +77,8 @@ class FireBall(pygame.sprite.Sprite):
         self.image = pygame.transform.rotate(self.original_image, angle)
         self.rect = self.image.get_rect(center=enemy_position)
 
-    def update(self):
-        self.rect.center += self.direction * self.fire_ball_velocity
-
     def draw(self, surface):
         surface.blit(self.image, self.rect)
+
+    def update(self):
+        self.rect.center += self.direction * self.fire_ball_velocity

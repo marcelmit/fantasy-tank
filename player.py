@@ -4,8 +4,9 @@ from pygame.locals import *
 from helper_functions import load_image
 
 class PlayerTank(pygame.sprite.Sprite):
-    def __init__(self, screen_size):
+    def __init__(self, game, screen_size):
         super().__init__()
+        self.game = game
         self.screen_size = screen_size
         self.direction = "up"
 
@@ -142,13 +143,14 @@ class PlayerTank(pygame.sprite.Sprite):
         self.health -= damage
         if self.health <= 0:
             self.kill()
+            self.game.game_state = "defeat"
         
-    def draw(self, surface):
-        surface.blit(self.image, self.rect)
-
     def update(self):
         self.movement()
         self.shoot()
+
+    def draw(self, surface):
+        surface.blit(self.image, self.rect)
 
 class PlayerProjectile(pygame.sprite.Sprite):
     def __init__(self, x_pos, y_pos, direction, is_rocket=False):
