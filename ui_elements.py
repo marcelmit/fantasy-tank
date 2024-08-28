@@ -1,6 +1,6 @@
 import pygame
 
-from helper_functions import load_image
+from helper_functions import load_image, load_sound
 
 class UI:
     @staticmethod
@@ -9,6 +9,8 @@ class UI:
         UI.resolution = game.resolution
         UI.screen_width, UI.screen_height = game.screen_size
         UI.font = pygame.font.SysFont("cambria", int(40 * UI.resolution))
+        UI.game_volume = 0.5
+        UI.click_sound = load_sound("click_sound")
 
 class MenuManager:
     def __init__(self, game):
@@ -33,14 +35,19 @@ class Menu:
     def __init__(self):
         self.backgrounds = []
         self.buttons = []
+        self.sliders = []
 
     def add_background(self, background):
         self.backgrounds.append(background)
 
     def add_button(self, button):
         self.buttons.append(button)
+
+    def add_slider(self, slider):
+        self.sliders.append(slider)
         
     def update(self, game):
+        #OptionsMenu.update_button_state()
         for button in self.buttons:
             if button.mouse_interaction():
                 self.handle_mouse_click(game, button)
@@ -50,6 +57,9 @@ class Menu:
             background.draw()
         for button in self.buttons:
             button.draw()
+        for slider in self.sliders:
+            slider.draw()
+            slider.update()
 
 class MainMenu(Menu):
     def __init__(self):
@@ -90,6 +100,10 @@ class OptionsMenu(Menu):
         super().__init__()
         self.add_background(Background("ui/main_menu_background", (960, 540), (1920, 1080)))
         self.add_background(Background("ui/box_square", (960, 540), (500, 500)))
+
+        self.add_button(Button("ui/audio_on", (800, 370), (50, 50)))
+        self.add_background(Background("ui/slider_blank_frame", (1020, 370), (300, 50)))
+        self.add_slider(Slider("ui/slider_blank_button", (1000, 370), (50, 50), (890, 1150), "sound_volume"))
 
         self.add_button(Button("ui/return_button", (1140, 722), (90, 90), text=""))
 
@@ -144,6 +158,7 @@ class Button:
 
         # Mouse clicked
         if self.rect.collidepoint(mouse_pos) and mouse_input[0]:
+            UI.click_sound.play()
             return True
         
         # Mouse hovered
@@ -157,3 +172,35 @@ class Button:
         UI.screen.blit(self.image, self.rect)
         if self.original_text:
             UI.screen.blit(self.text, self.text_rect)
+
+class Slider:
+    def __init__(self, image, pos, size, value_range, slider_type):
+        self.original_image = load_image(image)
+        self.image = pygame.transform.scale(self.original_image, (size[0] * UI.resolution, size[1] * UI.resolution))
+        self.rect = self.image.get_rect(center=(pos[0] * UI.resolution, pos[1] * UI.resolution))
+
+        self.value_range = value_range[0] * UI.resolution, value_range[1] * UI.resolution
+        self.slider_type = slider_type
+
+        self.dragging = False
+
+    def update(self):
+        mouse_position = pygame.mouse.get_pos()
+        mouse_click = pygame.mouse.get_pressed()
+
+        if mouse_click[0]:
+            if self.dragging:
+                pos = mouse_position[0]
+                pos = max(self.value_range[0], min(pos, self.value_range[1]))
+                self.rect.centerx = pos
+                UI.click_sound.play()
+                pygame.mixer.Sound.set_volume(UI.click_sound, UI.game_volume)
+                if self.slider_type == "sound_volume":
+                    UI.game_volume = (self.rect.centerx - self.value_range[0]) / (self.value_range[1] - self.value_range[0])
+            elif self.rect.collidepoint(mouse_position):
+                self.dragging = True
+        else:
+            self.dragging = False
+
+    def draw(self):
+        UI.screen.blit(self.image, self.rect)

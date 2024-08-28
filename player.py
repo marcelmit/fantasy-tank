@@ -1,7 +1,8 @@
 import pygame
 from pygame.locals import *
 
-from helper_functions import load_image
+from helper_functions import load_image, load_sound
+from ui_elements import UI
 
 class PlayerTank(pygame.sprite.Sprite):
     def __init__(self, game, screen_size):
@@ -85,8 +86,15 @@ class PlayerTank(pygame.sprite.Sprite):
         pressed_keys = pygame.key.get_pressed()
         current_time = pygame.time.get_ticks()
 
+        cannon_sound = load_sound("heavy_cannon")
+        rocket_sound = load_sound("rocket")
+        pygame.mixer.Sound.set_volume(cannon_sound, UI.game_volume)
+        pygame.mixer.Sound.set_volume(rocket_sound, UI.game_volume)
+
         # Create two cannon projectiles and offset them to fit the dual cannon barrel.
         if pressed_keys[K_SPACE] and current_time - self.last_shot_time > self.shoot_delay:
+            cannon_sound.play()
+            
             if self.direction == "up":
                 left_cannon_projectile = PlayerProjectile(self.rect.centerx - 8, self.rect.centery - 40, self.direction)
                 right_cannon_projectile = PlayerProjectile(self.rect.centerx + 8, self.rect.centery - 40, self.direction)
@@ -117,6 +125,7 @@ class PlayerTank(pygame.sprite.Sprite):
 
         # Create a rocket projectile and reduce rocket ammo count
         if self.rocket_ammo > 0 and pressed_keys[K_LCTRL] and current_time - self.last_shot_time > self.shoot_delay:
+            rocket_sound.play()
             self.rocket_ammo -= 1
 
             if self.direction == "up":
