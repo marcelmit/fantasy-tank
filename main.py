@@ -12,10 +12,10 @@ class Game:
         pygame.init()
         pygame.display.set_caption("Fantasy Tank")
         self.screen = pygame.display.set_mode((1920, 1080)) # 1920, 1080 > 1600, 900 > 1280, 720 > 960, 540
-        #self.screen = pygame.display.set_mode((960, 540))
+        self.screen = pygame.display.set_mode((960, 540))
         self.screen_size = self.screen.get_size()
         self.clock = pygame.time.Clock()
-        self.resolution = 1
+        self.resolution = 0.5
         self.game_state = "menu"
         UI.init(self)
 
@@ -47,9 +47,9 @@ class Game:
                 self.player.last_hit_time = current_time
 
     def update(self):
-        if not self.game_state == "gameplay":
-            self.menu_manager.update()
-        else:
+        self.menu_manager.update()
+
+        if self.game_state == "battle":
             self.player.update()
             self.player.projectile_group.update()
 
@@ -59,14 +59,14 @@ class Game:
     def draw(self):
         self.screen.fill((255, 255, 255))
 
-        if not self.game_state == "gameplay":
-            self.menu_manager.draw()
-        else:
+        if self.game_state == "battle":
             self.player.draw(self.screen)
             self.player.projectile_group.draw(self.screen)
 
             self.enemy_wizard.draw(self.screen)
             self.enemy_wizard.fire_ball_group.draw(self.screen)
+        else:
+            self.menu_manager.draw()
 
     def run(self):
         self.running = True

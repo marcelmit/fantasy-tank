@@ -17,7 +17,7 @@ class PlayerTank(pygame.sprite.Sprite):
 
         # Player stats
         self.max_health = 200
-        self.health = 100
+        self.health = 55
         self.velocity = 10
         self.rocket_ammo = 5
 
@@ -86,7 +86,7 @@ class PlayerTank(pygame.sprite.Sprite):
         pressed_keys = pygame.key.get_pressed()
         current_time = pygame.time.get_ticks()
 
-        cannon_sound = load_sound("heavy_cannon")
+        cannon_sound = load_sound("cannon")
         rocket_sound = load_sound("rocket")
         pygame.mixer.Sound.set_volume(cannon_sound, UI.game_volume)
         pygame.mixer.Sound.set_volume(rocket_sound, UI.game_volume)
@@ -94,7 +94,7 @@ class PlayerTank(pygame.sprite.Sprite):
         # Create two cannon projectiles and offset them to fit the dual cannon barrel.
         if pressed_keys[K_SPACE] and current_time - self.last_shot_time > self.shoot_delay:
             cannon_sound.play()
-            
+
             if self.direction == "up":
                 left_cannon_projectile = PlayerProjectile(self.rect.centerx - 8, self.rect.centery - 40, self.direction)
                 right_cannon_projectile = PlayerProjectile(self.rect.centerx + 8, self.rect.centery - 40, self.direction)
@@ -151,8 +151,11 @@ class PlayerTank(pygame.sprite.Sprite):
     def decrease_health(self, damage):
         self.health -= damage
         if self.health <= 0:
+            pygame.mixer.music.unload()
             self.kill()
             self.game.game_state = "defeat"
+            #print("dead")
+            #print(self.game.game_state)
         
     def update(self):
         self.movement()

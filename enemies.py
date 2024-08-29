@@ -40,8 +40,9 @@ class Wizard(pygame.sprite.Sprite):
     def decrease_health(self, damage):
         self.health -= damage
         if self.health <= 0:
+            pygame.mixer.music.unload()
             self.kill()
-            self.game.game_state = "defeat"
+            self.game.game_state = "victory"
 
     def animate_sprite(self):
         self.animation_timer += 1

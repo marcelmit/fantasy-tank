@@ -7,12 +7,6 @@ class EventHandler:
 
     def update(self):
         self.events = pygame.event.get()
-
-    def mouse_click(self):
-        for event in self.events:
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                return True
-        return False
     
     def quit(self):
         pressed_key = pygame.key.get_pressed()
