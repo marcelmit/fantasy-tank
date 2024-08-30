@@ -7,7 +7,6 @@ class UI:
     def init(game):
         UI.screen = game.screen
         UI.resolution = game.resolution
-        UI.screen_width, UI.screen_height = game.screen_size
         UI.font = pygame.font.SysFont("cambria", int(40 * UI.resolution))
         UI.click_sound = load_sound("click_sound")
         UI.game_volume = 0.5
@@ -18,6 +17,7 @@ class MenuManager:
         self.menus = {
             "menu": MainMenu(),
             "options": OptionsMenu(),
+            "battle": Battle(),
             "victory": GameOver("victory"),
             "defeat": GameOver("defeat")
         }
@@ -133,6 +133,10 @@ class OptionsMenu(Menu):
         if button.original_text == "":
             game.game_state = "menu"
 
+class Battle(Menu):
+    def __init__(self):
+        super().__init__()
+
 class GameOver(Menu):
     def __init__(self, condition):
         super().__init__()
@@ -157,12 +161,12 @@ class Background:
     def __init__(self, image, pos, size, text=None, text_pos=None):
         self.original_image = load_image(image)
         self.image = pygame.transform.scale(self.original_image, (size[0] * UI.resolution, size[1] * UI.resolution))
-        self.rect = self.image.get_rect(center=(pos[0] * UI.resolution, pos[1] * UI.resolution))
+        self.rect = self.image.get_rect(center = (pos[0] * UI.resolution, pos[1] * UI.resolution))
 
         self.text = text
         if text and text_pos:
             self.text = UI.font.render(text, True, "white")
-            self.text_rect = self.text.get_rect(center=(text_pos[0] * UI.resolution, text_pos[1] * UI.resolution))
+            self.text_rect = self.text.get_rect(center = (text_pos[0] * UI.resolution, text_pos[1] * UI.resolution))
 
     def draw(self):
         UI.screen.blit(self.image, self.rect)
@@ -173,12 +177,12 @@ class Button:
     def __init__(self, image, pos, size, text=None):
         self.original_image = load_image(image)
         self.image = pygame.transform.scale(self.original_image, (size[0] * UI.resolution, size[1] * UI.resolution))
-        self.rect = self.image.get_rect(center=(pos[0] * UI.resolution, pos[1] * UI.resolution))
+        self.rect = self.image.get_rect(center = (pos[0] * UI.resolution, pos[1] * UI.resolution))
 
         self.original_text = text
         if text:
             self.text = UI.font.render(self.original_text, True, "white")
-            self.text_rect = self.text.get_rect(center=(pos[0] * UI.resolution, pos[1] * UI.resolution))
+            self.text_rect = self.text.get_rect(center = (pos[0] * UI.resolution, pos[1] * UI.resolution))
 
     def mouse_interaction(self):
         mouse_pos = pygame.mouse.get_pos()
@@ -205,7 +209,7 @@ class Slider:
     def __init__(self, image, pos, size, value_range, slider_type):
         self.original_image = load_image(image)
         self.image = pygame.transform.scale(self.original_image, (size[0] * UI.resolution, size[1] * UI.resolution))
-        self.rect = self.image.get_rect(center=(pos[0] * UI.resolution, pos[1] * UI.resolution))
+        self.rect = self.image.get_rect(center = (pos[0] * UI.resolution, pos[1] * UI.resolution))
 
         self.value_range = value_range[0] * UI.resolution, value_range[1] * UI.resolution
         self.slider_type = slider_type

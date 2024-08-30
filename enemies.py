@@ -3,6 +3,7 @@ import math
 import pygame
 
 from helper_functions import load_image, load_sprite_sheet
+from ui_elements import UI
 
 class Wizard(pygame.sprite.Sprite):
     def __init__(self, game, screen_size, player_position):
@@ -11,8 +12,8 @@ class Wizard(pygame.sprite.Sprite):
         self.screen_size = screen_size
         self.player_position = player_position
 
-        self.image = load_sprite_sheet("enemies/wizard_idle", frame=0, width=40, height=60, scale=3, colour=(0, 0, 0))
-        self.rect = self.image.get_rect(centerx=self.screen_size[0] // 2, top=0)
+        self.image = load_sprite_sheet("enemies/wizard_idle", frame=0, width=40, height=60, scale=3, resolution=UI.resolution, colour=(0, 0, 0))
+        self.rect = self.image.get_rect(centerx = self.screen_size[0] // 2, top = 0)
 
         # Wizard stats
         self.max_health = 1000
@@ -54,7 +55,7 @@ class Wizard(pygame.sprite.Sprite):
             if self.animation_frame >= self.animation_steps:
                 self.animation_frame = 0
 
-            self.image = load_sprite_sheet("enemies/wizard_idle", frame=self.animation_frame, width=40, height=60, scale=3, colour=(0, 0, 0))
+            self.image = load_sprite_sheet("enemies/wizard_idle", frame=self.animation_frame, width=40, height=60, scale=3, resolution=UI.resolution, colour=(0, 0, 0))
 
     def update(self):
         self.combat_logic()
@@ -66,7 +67,7 @@ class Wizard(pygame.sprite.Sprite):
 class FireBall(pygame.sprite.Sprite):
     def __init__(self, enemy_position, player_position):
         super().__init__()
-        self.fire_ball_velocity = 7
+        self.fire_ball_velocity = 7 * UI.resolution
 
         # Calculate the players position
         direction_vector = pygame.math.Vector2(player_position) - pygame.math.Vector2(enemy_position)
@@ -75,8 +76,9 @@ class FireBall(pygame.sprite.Sprite):
         # Rotate the image based on the shooting direction.
         angle = math.degrees(math.atan2(-self.direction.y, self.direction.x)) + 90
         self.original_image = load_image("enemies/fire_ball")
-        self.image = pygame.transform.rotate(self.original_image, angle)
-        self.rect = self.image.get_rect(center=enemy_position)
+        self.rescaled_image = pygame.transform.scale(self.original_image, (64 * UI.resolution, 64 * UI.resolution))
+        self.image = pygame.transform.rotate(self.rescaled_image, angle)
+        self.rect = self.image.get_rect(center = enemy_position)
 
     def draw(self, surface):
         surface.blit(self.image, self.rect)
