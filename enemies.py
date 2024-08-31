@@ -13,7 +13,7 @@ class Wizard(pygame.sprite.Sprite):
         self.player_position = player_position
 
         self.image = load_sprite_sheet("enemies/wizard_idle", frame=0, width=40, height=60, scale=3, resolution=UI.resolution, colour=(0, 0, 0))
-        self.rect = self.image.get_rect(centerx = self.screen_size[0] // 2, top = 0)
+        self.rect = self.image.get_rect(centerx = self.screen_size[0] // 2)
 
         # Wizard stats
         self.max_health = 1000
@@ -80,8 +80,11 @@ class FireBall(pygame.sprite.Sprite):
         self.image = pygame.transform.rotate(self.rescaled_image, angle)
         self.rect = self.image.get_rect(center = enemy_position)
 
-    def draw(self, surface):
-        surface.blit(self.image, self.rect)
-
     def update(self):
         self.rect.center += self.direction * self.fire_ball_velocity
+        if (self.rect.x < - 100 or self.rect.x > UI.screen_size[0] + 100 or
+            self.rect.y < - 100 or self.rect.y > UI.screen_size[1] + 100):
+            self.kill()
+
+    def draw(self, surface):
+        surface.blit(self.image, self.rect)

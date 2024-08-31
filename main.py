@@ -17,7 +17,7 @@ class Game:
         self.resolution = 0.5
         self.screen_size = self.screen.get_size()
         self.clock = pygame.time.Clock()
-        self.game_state = "menu"
+        self.game_state = "battle"
         UI.init(self)
 
         self.event_handler = EventHandler()

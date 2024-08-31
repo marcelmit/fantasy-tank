@@ -48,14 +48,14 @@ class PlayerTank(pygame.sprite.Sprite):
         self.rect.move_ip(x_pos, y_pos)
 
         # Stops the player from moving off-screen.
-        if self.rect.top <= 0:
-            self.rect.top = 0
+        if self.rect.top <= 215 * UI.resolution:
+            self.rect.top = 215 * UI.resolution
         elif self.rect.bottom >= self.screen_size[1]:
             self.rect.bottom = self.screen_size[1]
         if self.rect.left <= 0:
             self.rect.left = 0
         elif self.rect.right >= self.screen_size[0]:
-            self.rect.right = self.screen_size[0] - 10.5
+            self.rect.right = self.screen_size[0] - 10.5 * UI.resolution
 
         # Rotate sprite image based on movement direction and updates the direction state.
         if x_pos == 0 and y_pos < 0:
@@ -211,8 +211,8 @@ class PlayerProjectile(pygame.sprite.Sprite):
         self.rect.move_ip(x_pos, y_pos)
 
         # Removes the projectile if it moves off-screen.
-        if (self.rect.centerx < - 100 or self.rect.centerx > pygame.display.get_surface().get_width() + 100 or 
-            self.rect.centery < - 100 or self.rect.centery > pygame.display.get_surface().get_height() + 100):
+        if (self.rect.x < - 100 or self.rect.x > UI.screen_size[0] + 100 or 
+            self.rect.y < - 100 or self.rect.y > UI.screen_size[1] + 100):
             self.kill()
 
     def update(self):

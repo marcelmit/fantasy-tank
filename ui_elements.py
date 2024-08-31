@@ -1,3 +1,5 @@
+import random
+
 import pygame
 
 from helper_functions import load_image, load_sound, load_music
@@ -6,6 +8,7 @@ class UI:
     @staticmethod
     def init(game):
         UI.screen = game.screen
+        UI.screen_size = game.screen.get_size()
         UI.resolution = game.resolution
         UI.font = pygame.font.SysFont("cambria", int(40 * UI.resolution))
         UI.click_sound = load_sound("click_sound")
@@ -38,7 +41,7 @@ class MenuManager:
                 pygame.mixer.music.play(- 1)
 
     def update(self):
-        self.play_music()
+        #self.play_music()
         current_menu = self.menus.get(self.game.game_state)
         if current_menu:
             current_menu.update(self.game)
@@ -136,6 +139,20 @@ class OptionsMenu(Menu):
 class Battle(Menu):
     def __init__(self):
         super().__init__()
+        self.cloud_generator = CloudGenerator()
+
+        self.ui_elements = [
+            Background("ui/battle_background", (960, 650), (1920, 870)),
+            Background("ui/sky_background", (960, 100), (1920, 230))
+        ]
+
+    def update(self, game):
+        self.cloud_generator.update()
+
+    def draw(self):
+        for element in self.ui_elements:
+            element.draw()
+        self.cloud_generator.draw()
 
 class GameOver(Menu):
     def __init__(self, condition):
@@ -241,3 +258,55 @@ class Slider:
 
     def draw(self):
         UI.screen.blit(self.image, self.rect)
+
+class Cloud:
+    def __init__(self, pos):
+        size = (random.randint(50, 100), random.randint(25, 50))
+        rnd = random.randint(1, 8)
+        image = f"ui/cloud_{rnd}"
+
+        self.original_image = load_image(image)
+        self.image = pygame.transform.scale(self.original_image, (size[0] * UI.resolution, size[1] * UI.resolution))
+        self.rect = self.image.get_rect(center = (pos[0], pos[1] * UI.resolution))
+
+    def update(self):
+        self.rect.x += 1
+
+    def draw(self):
+        UI.screen.blit(self.image, self.rect)
+
+class CloudGenerator:
+    def __init__(self):
+        self.clouds = []
+
+        self.generate_initial_clouds(10)
+        self.last_cloud = 0
+        self.cloud_cooldown = 3
+
+    def generate_cloud(self):
+        current_time = pygame.time.get_ticks() / 1000
+        pos = (- 50, random.randint(10, 190))
+
+        if current_time - self.last_cloud > self.cloud_cooldown:
+            self.clouds.append(Cloud(pos))
+            self.last_cloud = current_time
+
+    def generate_initial_clouds(self, count):
+        step = UI.screen_size[0] // count
+
+        for i in range(count):
+            x_pos = step * i + random.randint(- 50, 50)
+            pos = (x_pos, random.randint(10, 190))
+            self.clouds.append(Cloud(pos))
+
+    def update(self):
+        self.generate_cloud()
+
+        for cloud in self.clouds:
+            cloud.update()
+            if cloud.rect.left > UI.screen_size[0]:
+                self.clouds.remove(cloud)
+
+    def draw(self):
+        for cloud in self.clouds:
+            cloud.draw()
