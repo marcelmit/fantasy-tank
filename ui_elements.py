@@ -110,8 +110,7 @@ class MainMenu(Menu):
 
     def handle_mouse_click(self, game, button):
         if button.original_text == "Play":
-            pygame.mixer.music.unload()
-            game.game_state = "battle"
+            game.new_game()
         elif button.original_text == "Options":
             game.game_state = "options"
         elif button.original_text == "Exit":
@@ -171,8 +170,7 @@ class GameOver(Menu):
             pygame.mixer.music.unload()
             game.game_state = "menu"
         if button.original_text == "Retry":
-            pygame.mixer.music.unload()
-            game.game_state = "battle"
+            game.new_game()
 
 class Background:
     def __init__(self, image, pos, size, text=None, text_pos=None):

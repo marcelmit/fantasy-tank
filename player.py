@@ -150,6 +150,7 @@ class PlayerTank(pygame.sprite.Sprite):
             self.last_shot_time = current_time
 
     def decrease_health(self, damage):
+        print(self.health)
         self.health -= damage
         if self.health <= 0:
             pygame.mixer.music.unload()

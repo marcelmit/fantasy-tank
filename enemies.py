@@ -1,4 +1,5 @@
 import math
+import random
 
 import pygame
 
@@ -21,7 +22,14 @@ class Wizard(pygame.sprite.Sprite):
 
         # Fire ball
         self.fire_ball_group = pygame.sprite.Group()
-        self.fire_ball_interval = 2
+        self.fire_ball_interval = 255
+
+        # Fire wall
+        self.fire_wall_group = pygame.sprite.Group()
+        self.fire_wall_interval = 1
+        self.fire_wall_last_shot_time = 0
+        self.fire_wall_count = 0
+        self.max_fire_wall_count = 3
 
         # Sprite animation
         self.animation_frame = 0
@@ -34,9 +42,21 @@ class Wizard(pygame.sprite.Sprite):
 
         # Fire ball
         if current_time >= self.fire_ball_interval:
-            fire_ball = FireBall(self.rect.center, self.player_position.rect.center)
+            fire_ball = FireBall((self.rect.centerx - 30 * UI.resolution, self.rect.centery - 35 * UI.resolution), self.player_position.rect.center)
             self.fire_ball_group.add(fire_ball)
             self.fire_ball_interval = current_time + 2
+
+        # Fire wall
+        if current_time >= self.fire_wall_interval and self.fire_wall_count < self.max_fire_wall_count and current_time >= self.fire_wall_last_shot_time + 2:
+            self.cooldown = 500
+            fire_wall = FireWall()
+            self.fire_wall_group.add(fire_wall)
+            self.fire_wall_count += 1
+            self.fire_wall_last_shot_time = current_time
+        elif self.fire_wall_count >= self.max_fire_wall_count and current_time >= self.fire_wall_last_shot_time:
+            self.fire_wall_count = 0
+            self.fire_wall_interval = current_time + 15
+            self.cooldown = current_time + 4
 
     def decrease_health(self, damage):
         self.health -= damage
@@ -74,7 +94,7 @@ class FireBall(pygame.sprite.Sprite):
         self.direction = direction_vector.normalize()
 
         # Rotate the image based on the shooting direction.
-        angle = math.degrees(math.atan2(-self.direction.y, self.direction.x)) + 90
+        angle = math.degrees(math.atan2(- self.direction.y, self.direction.x)) + 90
         self.original_image = load_image("enemies/fire_ball")
         self.rescaled_image = pygame.transform.scale(self.original_image, (64 * UI.resolution, 64 * UI.resolution))
         self.image = pygame.transform.rotate(self.rescaled_image, angle)
@@ -88,3 +108,38 @@ class FireBall(pygame.sprite.Sprite):
 
     def draw(self, surface):
         surface.blit(self.image, self.rect)
+
+class FireWall(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.group = pygame.sprite.Group()
+        self.wall_elements = []
+
+        self.wall_element_width = 79 * UI.resolution
+        self.fire_wall_velocity = 6 * UI.resolution
+
+        # Create random gaps towards the center of the wall.
+        empty_gaps_list = list(range(5, 20))
+        empty_gaps = random.sample(empty_gaps_list, k=4)
+
+        for i in range(25):
+            if i in empty_gaps:
+                continue
+            else:
+                wall_element = pygame.sprite.Sprite()
+                wall_element.image = load_image("enemies/fire_wall")
+                wall_element.rect = wall_element.image.get_rect(topleft = (0 + i * self.wall_element_width, 0))
+
+                self.wall_elements.append((wall_element.image, wall_element.rect))
+                self.group.add(wall_element)
+
+    def update(self):
+        for _, wall_element_rect in self.wall_elements:
+            wall_element_rect.y += self.fire_wall_velocity
+
+        if wall_element_rect.y < - 100 or wall_element_rect.y > UI.screen_size[1] + 100:
+            self.kill()
+        
+    def draw(self, surface):
+        for wall_element_image, wall_element_rect in self.wall_elements:
+            surface.blit(wall_element_image, wall_element_rect)

@@ -47,6 +47,13 @@ class Game:
                 self.player.decrease_health(15)
                 self.player.last_hit_time = current_time
 
+        # Fire wall collision
+        for fire_wall in self.enemy_wizard.fire_wall_group:
+            if pygame.sprite.spritecollideany(self.player, fire_wall.group):
+                if current_time - self.player.last_hit_time > self.player.invulnerability_duration:
+                    self.player.decrease_health(10)
+                    self.player.last_hit_time = current_time
+
     def update(self):
         self.menu_manager.update()
 
@@ -56,6 +63,7 @@ class Game:
 
             self.enemy_wizard.update()
             self.enemy_wizard.fire_ball_group.update()
+            self.enemy_wizard.fire_wall_group.update()
 
     def draw(self):
         self.screen.fill((255, 255, 255))
@@ -69,6 +77,18 @@ class Game:
 
             self.enemy_wizard.draw(self.screen)
             self.enemy_wizard.fire_ball_group.draw(self.screen)
+            for fire_wall in self.enemy_wizard.fire_wall_group:
+                fire_wall.draw(self.screen)
+
+    def new_game(self):
+        pygame.mixer.music.unload()
+        
+        self.player = PlayerTank(self, self.screen_size)
+
+        self.enemy_wizard = Wizard(self, self.screen_size, self.player)
+        self.enemy_group.add(self.enemy_wizard)
+
+        self.game_state = "battle"
 
     def run(self):
         self.running = True
