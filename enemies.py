@@ -20,16 +20,25 @@ class Wizard(pygame.sprite.Sprite):
         self.max_health = 1000
         self.health = 100
 
+        self.cooldown = 0
+
         # Fire ball
         self.fire_ball_group = pygame.sprite.Group()
         self.fire_ball_interval = 255
 
         # Fire wall
         self.fire_wall_group = pygame.sprite.Group()
-        self.fire_wall_interval = 1
+        self.fire_wall_interval = 1555
         self.fire_wall_last_shot_time = 0
         self.fire_wall_count = 0
         self.max_fire_wall_count = 3
+
+        # Fire rain
+        self.fire_rain_group = pygame.sprite.Group()
+        self.fire_rain_interval = 2
+        self.fire_rain_clear = 500
+        self.fire_rain_last_clear = 500
+        self.fire_rain_collision_tiles = 500
 
         # Sprite animation
         self.animation_frame = 0
@@ -57,6 +66,26 @@ class Wizard(pygame.sprite.Sprite):
             self.fire_wall_count = 0
             self.fire_wall_interval = current_time + 15
             self.cooldown = current_time + 4
+
+        # Fire rain
+        fire_rain_spawner = FireRainSpawner(79, self.fire_rain_group)
+        if current_time >= self.fire_rain_interval and current_time >= self.cooldown + 1:
+            self.cooldown = 500
+            fire_rain_spawner.fire_rain_tiles(has_collision=False)
+            self.fire_rain_clear = current_time + 3
+        elif current_time >= self.fire_rain_clear:
+            self.fire_rain_group.empty()
+            self.fire_rain_clear = 500
+            self.fire_rain_collision_tiles = 0
+        elif current_time >= self.fire_rain_collision_tiles:
+            self.fire_rain_collision_tiles = 500
+            fire_rain_spawner.fire_rain_tiles(has_collision=True)
+            self.fire_rain_last_clear = current_time + 1.5
+        elif current_time >= self.fire_rain_last_clear:
+            self.fire_rain_group.empty()
+            self.fire_rain_last_clear = 500
+            self.fire_rain_interval = current_time + 15
+            self.cooldown = current_time
 
     def decrease_health(self, damage):
         self.health -= damage
@@ -143,3 +172,62 @@ class FireWall(pygame.sprite.Sprite):
     def draw(self, surface):
         for wall_element_image, wall_element_rect in self.wall_elements:
             surface.blit(wall_element_image, wall_element_rect)
+
+class FireRain(pygame.sprite.Sprite):
+    def __init__(self, pos, image, has_collision=False):
+        super().__init__()
+        self.has_collision = has_collision
+
+        self.original_image = load_image(image)
+        self.image = self.original_image
+        self.rect = self.original_image.get_rect(center = pos)
+
+        self.rotation = 0
+        self.angle = 0
+        self.size = 0
+
+    def update(self):
+        if self.has_collision:
+            self.angle -= 8.2 * UI.resolution
+            self.size += 0.010
+            self.scaled_image = pygame.transform.scale(self.original_image, (64 * UI.resolution, 63 * UI.resolution))
+            self.image = pygame.transform.rotozoom(self.scaled_image, self.angle, self.size)
+            self.rect = self.image.get_rect(center = self.rect.center)
+        else:
+            self.rotation = (self.rotation - 3 * UI.resolution) % 360
+            self.scaled_image = pygame.transform.scale(self.original_image, (53 * UI.resolution, 52 * UI.resolution))
+            self.image = pygame.transform.rotate(self.scaled_image, self.rotation)
+            self.rect = self.image.get_rect(center = self.rect.center)
+
+class FireRainSpawner:
+    def __init__(self, count, fire_rain_group):
+        self.count = count
+        self.fire_rain_group = fire_rain_group
+
+    def fire_rain_tiles(self, has_collision=False):
+        no_collision_image_path = ("enemies/fire_rain_1")
+        collision_image_path = ("enemies/fire_rain_2")
+
+        step = 200 * UI.resolution
+        x_pos, y_pos = 60 * UI.resolution, 290 * UI.resolution
+        reset_x_pos = False
+
+        for i in range(self.count):
+            position = (x_pos, y_pos)
+            x_pos += step
+
+            if x_pos >= 2000 * UI.resolution:
+                if reset_x_pos:
+                    x_pos = 60 * UI.resolution
+                    reset_x_pos = False
+                else:
+                    x_pos = 160 * UI.resolution
+                    reset_x_pos = True
+                y_pos += 100 * UI.resolution
+
+            if has_collision:
+                fire_rain = FireRain(position, collision_image_path, has_collision=True)
+                self.fire_rain_group.add(fire_rain)
+            else:
+                fire_rain = FireRain(position, no_collision_image_path)
+                self.fire_rain_group.add(fire_rain)
