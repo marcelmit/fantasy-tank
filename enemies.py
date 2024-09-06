@@ -7,11 +7,11 @@ from helper_functions import load_image, load_sprite_sheet
 from ui_elements import UI
 
 class Wizard(pygame.sprite.Sprite):
-    def __init__(self, game, screen_size, player_position):
+    def __init__(self, game, screen_size, player_pos):
         super().__init__()
         self.game = game
         self.screen_size = screen_size
-        self.player_position = player_position
+        self.player_pos = player_pos
 
         self.image = load_sprite_sheet("enemies/wizard_idle", frame=0, width=40, height=60, scale=3, resolution=UI.resolution, colour=(0, 0, 0))
         self.rect = self.image.get_rect(centerx = self.screen_size[0] // 2)
@@ -24,7 +24,7 @@ class Wizard(pygame.sprite.Sprite):
 
         # Fire ball
         self.fire_ball_group = pygame.sprite.Group()
-        self.fire_ball_interval = 255
+        self.fire_ball_interval = 2
 
         # Fire wall
         self.fire_wall_group = pygame.sprite.Group()
@@ -35,7 +35,7 @@ class Wizard(pygame.sprite.Sprite):
 
         # Fire rain
         self.fire_rain_group = pygame.sprite.Group()
-        self.fire_rain_interval = 2
+        self.fire_rain_interval = 555
         self.fire_rain_clear = 500
         self.fire_rain_last_clear = 500
         self.fire_rain_collision_tiles = 500
@@ -51,7 +51,7 @@ class Wizard(pygame.sprite.Sprite):
 
         # Fire ball
         if current_time >= self.fire_ball_interval:
-            fire_ball = FireBall((self.rect.centerx - 30 * UI.resolution, self.rect.centery - 35 * UI.resolution), self.player_position.rect.center)
+            fire_ball = FireBall((self.rect.centerx - 30 * UI.resolution, self.rect.centery - 35 * UI.resolution), self.player_pos.rect.center)
             self.fire_ball_group.add(fire_ball)
             self.fire_ball_interval = current_time + 2
 
@@ -114,12 +114,12 @@ class Wizard(pygame.sprite.Sprite):
         surface.blit(self.image, self.rect)
 
 class FireBall(pygame.sprite.Sprite):
-    def __init__(self, enemy_position, player_position):
+    def __init__(self, enemy_pos, player_pos):
         super().__init__()
         self.fire_ball_velocity = 7 * UI.resolution
 
         # Calculate the players position
-        direction_vector = pygame.math.Vector2(player_position) - pygame.math.Vector2(enemy_position)
+        direction_vector = pygame.math.Vector2(player_pos) - pygame.math.Vector2(enemy_pos)
         self.direction = direction_vector.normalize()
 
         # Rotate the image based on the shooting direction.
@@ -127,7 +127,7 @@ class FireBall(pygame.sprite.Sprite):
         self.original_image = load_image("enemies/fire_ball")
         self.rescaled_image = pygame.transform.scale(self.original_image, (64 * UI.resolution, 64 * UI.resolution))
         self.image = pygame.transform.rotate(self.rescaled_image, angle)
-        self.rect = self.image.get_rect(center = enemy_position)
+        self.rect = self.image.get_rect(center = enemy_pos)
 
     def update(self):
         self.rect.center += self.direction * self.fire_ball_velocity

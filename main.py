@@ -17,10 +17,10 @@ class Game:
         self.resolution = 0.5
         self.screen_size = self.screen.get_size()
         self.clock = pygame.time.Clock()
-        self.game_state = "battle"
+        self.game_state = "menu"
         UI.init(self)
 
-        self.event_handler = EventHandler()
+        self.event_handler = EventHandler(self)
         self.menu_manager = MenuManager(self)
 
         self.player = PlayerTank(self, self.screen_size)
@@ -61,6 +61,7 @@ class Game:
 
     def update(self):
         self.menu_manager.update()
+        print(self.game_state)
 
         if self.game_state == "battle":
             self.player.update()
@@ -73,11 +74,9 @@ class Game:
 
     def draw(self):
         self.screen.fill((255, 255, 255))
-
         self.menu_manager.draw()
 
         if self.game_state == "battle":
-            self.menu_manager.draw()
             self.player.draw(self.screen)
             self.player.projectile_group.draw(self.screen)
 
@@ -86,9 +85,15 @@ class Game:
             for fire_wall in self.enemy_wizard.fire_wall_group:
                 fire_wall.draw(self.screen)
             self.enemy_wizard.fire_rain_group.draw(self.screen)
+        elif self.game_state == "battle_options":
+            self.enemy_wizard.draw(self.screen)
 
     def new_game(self):
         pygame.mixer.music.unload()
+        self.player.projectile_group.empty()
+        self.enemy_wizard.fire_ball_group.empty()
+        self.enemy_wizard.fire_wall_group.empty()
+        self.enemy_wizard.fire_rain_group.empty()
         
         self.player = PlayerTank(self, self.screen_size)
 
@@ -101,11 +106,10 @@ class Game:
         self.running = True
 
         while self.running:
-            self.event_handler.update()
-
             if self.event_handler.quit():
                 self.running = False
 
+            self.event_handler.update()
             self.collisions()
             self.update()
             self.draw()

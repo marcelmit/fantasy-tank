@@ -12,18 +12,37 @@ class UI:
         UI.resolution = game.resolution
         UI.font = pygame.font.SysFont("cambria", int(40 * UI.resolution))
         UI.click_sound = load_sound("click_sound")
-        UI.game_volume = 0.5
+        UI.sound_volume = 0.5
+        UI.music_volume = 0.5
 
 class MenuManager:
     def __init__(self, game):
         self.game = game
+        self.current_menu = None
+        self.last_game_state = None
+        
         self.menus = {
             "menu": MainMenu(),
-            "options": OptionsMenu(),
+            "options": OptionsMenu("options"),
+            "battle_options": OptionsMenu("battle_options"),
             "battle": Battle(),
             "victory": GameOver("victory"),
             "defeat": GameOver("defeat")
         }
+
+    def initialize_menu(self):
+        if self.game.game_state == "menu":
+            self.current_menu = MainMenu()
+        elif self.game.game_state == "options":
+            self.current_menu = OptionsMenu("options")
+        elif self.game.game_state == "battle_options":
+            self.current_menu = OptionsMenu("battle_options")
+        elif self.game.game_state == "battle":
+            self.current_menu = Battle()
+        elif self.game.game_state == "victory":
+            self.current_menu = GameOver("victory")
+        elif self.game.game_state == "defeat":
+            self.current_menu = GameOver("defeat")
     
     def play_music(self):
         if pygame.mixer.music.get_busy() == False:
@@ -42,14 +61,19 @@ class MenuManager:
 
     def update(self):
         #self.play_music()
-        current_menu = self.menus.get(self.game.game_state)
-        if current_menu:
-            current_menu.update(self.game)
+
+        if self.game.game_state != self.last_game_state:
+            self.initialize_menu()
+            self.last_game_state = self.game.game_state
+
+        if self.current_menu:
+            self.current_menu.update(self.game)
 
     def draw(self):
-        current_menu = self.menus.get(self.game.game_state)
-        if current_menu:
-            current_menu.draw()
+        if self.current_menu:
+            if self.game.game_state == "battle_options":
+                self.menus["battle"].draw()
+            self.current_menu.draw()
 
 class Menu:
     def __init__(self):
@@ -65,7 +89,7 @@ class Menu:
 
     def add_slider(self, slider):
         self.sliders.append(slider)
-        
+
     def update(self, game):
         for button in self.buttons:
             if button.mouse_interaction():
@@ -117,19 +141,21 @@ class MainMenu(Menu):
             game.running = False
 
 class OptionsMenu(Menu):
-    def __init__(self):
+    def __init__(self, state):
         super().__init__()
-        self.add_background(Background("ui/main_menu_background", (960, 540), (1920, 1080)))
+        if state == "options":
+            self.add_background(Background("ui/main_menu_background", (960, 540), (1920, 1080)))
+
         self.add_background(Background("ui/box_square", (960, 540), (500, 500)))
+        self.add_button(Button("ui/main_menu", (1140, 722), (90, 90), text=""))
 
         self.add_background(Background("ui/audio", (800, 370), (50, 50)))
         self.add_background(Background("ui/slider_blank_frame", (1020, 370), (300, 50)))
         self.add_slider(Slider("ui/slider_blank_button", (1020, 370), (50, 50), (890, 1150), "sound_volume"))
+
         self.add_background(Background("ui/music", (800, 470), (50, 50)))
         self.add_background(Background("ui/slider_blank_frame", (1020, 470), (300, 50)))
         self.add_slider(Slider("ui/slider_blank_button", (1020, 470), (50, 50), (890, 1150), "music_volume"))
-
-        self.add_button(Button("ui/return_button", (1140, 722), (90, 90), text=""))
 
     def handle_mouse_click(self, game, button):
         if button.original_text == "":
@@ -154,12 +180,13 @@ class Battle(Menu):
         self.cloud_generator.draw()
 
 class GameOver(Menu):
-    def __init__(self, condition):
+    def __init__(self, state):
         super().__init__()
         self.add_background(Background("ui/box_square", (960, 540), (500, 500)))
-        if condition == "victory":
+
+        if state == "victory":
             self.add_background(Background("ui/box_blue_square", (960, 300), (200, 100), text="Victory", text_pos=(960, 300)))
-        elif condition == "defeat":
+        elif state == "defeat":
             self.add_background(Background("ui/box_blue_square", (960, 300), (200, 100), text="Defeat", text_pos=(960, 300)))
 
         self.add_button(Button("ui/main_menu", (800, 710), (90, 90), text=""))
@@ -222,12 +249,19 @@ class Button:
 
 class Slider:
     def __init__(self, image, pos, size, value_range, slider_type):
+        self.slider_type = slider_type
+
         self.original_image = load_image(image)
         self.image = pygame.transform.scale(self.original_image, (size[0] * UI.resolution, size[1] * UI.resolution))
         self.rect = self.image.get_rect(center = (pos[0] * UI.resolution, pos[1] * UI.resolution))
 
+        # Initial slider position
+        if slider_type == "sound_volume":
+            initial_value = UI.sound_volume
+        elif slider_type == "music_volume":
+            initial_value = UI.music_volume
         self.value_range = value_range[0] * UI.resolution, value_range[1] * UI.resolution
-        self.slider_type = slider_type
+        self.rect.centerx = self.value_range[0] + (initial_value * (self.value_range[1] - self.value_range[0]))
 
         self.dragging = False
 
@@ -242,12 +276,12 @@ class Slider:
                 self.rect.centerx = pos
 
                 if self.slider_type == "sound_volume":
-                    UI.game_volume = (self.rect.centerx - self.value_range[0]) / (self.value_range[1] - self.value_range[0])
-                    pygame.mixer.Sound.set_volume(UI.click_sound, UI.game_volume)
+                    UI.sound_volume = (self.rect.centerx - self.value_range[0]) / (self.value_range[1] - self.value_range[0])
+                    pygame.mixer.Sound.set_volume(UI.click_sound, UI.sound_volume)
                     UI.click_sound.play()
                 elif self.slider_type == "music_volume":
-                    music_volume = (self.rect.centerx - self.value_range[0]) / (self.value_range[1] - self.value_range[0])
-                    pygame.mixer.music.set_volume(music_volume)
+                    UI.music_volume = (self.rect.centerx - self.value_range[0]) / (self.value_range[1] - self.value_range[0])
+                    pygame.mixer.music.set_volume(UI.music_volume)
 
             elif self.rect.collidepoint(mouse_position):
                 self.dragging = True
