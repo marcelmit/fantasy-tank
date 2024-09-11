@@ -2,7 +2,7 @@ import sys
 
 import pygame
 
-from events import EventHandler
+from helper_functions import close_game, keyboard_input
 from player import PlayerTank
 from enemies import Wizard
 from ui_elements import UI, MenuManager
@@ -11,16 +11,18 @@ class Game:
     def __init__(self):
         pygame.init()
         pygame.display.set_caption("Fantasy Tank")
-        self.screen = pygame.display.set_mode((1920, 1080)) # 1920, 1080 > 1600, 900 > 1280, 720 > 960, 540
-        self.resolution = 1
         self.screen = pygame.display.set_mode((960, 540))
         self.resolution = 0.5
+        #self.screen = pygame.display.set_mode((1920, 1080))
+        #self.resolution = 1
         self.screen_size = self.screen.get_size()
+        self.sound_volume = 0.5
+        self.music_volume = 0.5
         self.clock = pygame.time.Clock()
-        self.game_state = "menu"
+        self.state = "battle"
+        self.paused = False
         UI.init(self)
 
-        self.event_handler = EventHandler(self)
         self.menu_manager = MenuManager(self)
 
         self.player = PlayerTank(self, self.screen_size)
@@ -28,6 +30,20 @@ class Game:
         self.enemy_wizard = Wizard(self, self.screen_size, self.player)
         self.enemy_group = pygame.sprite.Group()
         self.enemy_group.add(self.enemy_wizard)
+
+    def set_resolution(self, resolution):
+        resolutions = {
+            "1920x1080": 1.0,
+            "1600x900": 0.84,
+            "1280x720": 0.67,
+            "960x540": 0.5
+        }
+
+        self.resolution = resolutions[resolution]
+        width, height = map(int, resolution.split("x"))
+        self.screen = pygame.display.set_mode((width, height))
+        self.screen_size = self.screen.get_size()
+        UI.init(self)
 
     def collisions(self):
         current_time = pygame.time.get_ticks() / 1000
@@ -60,23 +76,25 @@ class Game:
                 self.player.decrease_health(5)
 
     def update(self):
-        self.menu_manager.update()
-        print(self.game_state)
+        keyboard_input(self)
 
-        if self.game_state == "battle":
-            self.player.update()
-            self.player.projectile_group.update()
+        if not self.paused:
+            self.menu_manager.update()
 
-            self.enemy_wizard.update()
-            self.enemy_wizard.fire_ball_group.update()
-            self.enemy_wizard.fire_wall_group.update()
-            self.enemy_wizard.fire_rain_group.update()
+            if self.state == "battle":
+                self.player.update()
+                self.player.projectile_group.update()
+
+                self.enemy_wizard.update()
+                self.enemy_wizard.fire_ball_group.update()
+                self.enemy_wizard.fire_wall_group.update()
+                self.enemy_wizard.fire_rain_group.update()
 
     def draw(self):
         self.screen.fill((255, 255, 255))
         self.menu_manager.draw()
 
-        if self.game_state == "battle":
+        if self.state == "battle":
             self.player.draw(self.screen)
             self.player.projectile_group.draw(self.screen)
 
@@ -85,8 +103,6 @@ class Game:
             for fire_wall in self.enemy_wizard.fire_wall_group:
                 fire_wall.draw(self.screen)
             self.enemy_wizard.fire_rain_group.draw(self.screen)
-        elif self.game_state == "battle_options":
-            self.enemy_wizard.draw(self.screen)
 
     def new_game(self):
         pygame.mixer.music.unload()
@@ -100,16 +116,15 @@ class Game:
         self.enemy_wizard = Wizard(self, self.screen_size, self.player)
         self.enemy_group.add(self.enemy_wizard)
 
-        self.game_state = "battle"
+        self.state = "battle"
 
     def run(self):
         self.running = True
 
         while self.running:
-            if self.event_handler.quit():
+            if close_game():
                 self.running = False
 
-            self.event_handler.update()
             self.collisions()
             self.update()
             self.draw()

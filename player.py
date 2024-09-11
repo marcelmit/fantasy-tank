@@ -89,8 +89,8 @@ class PlayerTank(pygame.sprite.Sprite):
 
         cannon_sound = load_sound("cannon")
         rocket_sound = load_sound("rocket")
-        pygame.mixer.Sound.set_volume(cannon_sound, UI.sound_volume)
-        pygame.mixer.Sound.set_volume(rocket_sound, UI.sound_volume)
+        pygame.mixer.Sound.set_volume(cannon_sound, self.game.sound_volume)
+        pygame.mixer.Sound.set_volume(rocket_sound, self.game.sound_volume)
 
         # Create two cannon projectiles and offset them to fit the dual cannon barrel.
         if pressed_keys[K_SPACE] and current_time - self.last_shot_time > self.shoot_delay:

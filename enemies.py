@@ -7,11 +7,11 @@ from helper_functions import load_image, load_sprite_sheet
 from ui_elements import UI
 
 class Wizard(pygame.sprite.Sprite):
-    def __init__(self, game, screen_size, player_pos):
+    def __init__(self, game, screen_size, player):
         super().__init__()
         self.game = game
         self.screen_size = screen_size
-        self.player_pos = player_pos
+        self.player = player
 
         self.image = load_sprite_sheet("enemies/wizard_idle", frame=0, width=40, height=60, scale=3, resolution=UI.resolution, colour=(0, 0, 0))
         self.rect = self.image.get_rect(centerx = self.screen_size[0] // 2)
@@ -51,7 +51,7 @@ class Wizard(pygame.sprite.Sprite):
 
         # Fire ball
         if current_time >= self.fire_ball_interval:
-            fire_ball = FireBall((self.rect.centerx - 30 * UI.resolution, self.rect.centery - 35 * UI.resolution), self.player_pos.rect.center)
+            fire_ball = FireBall((self.rect.centerx - 30 * UI.resolution, self.rect.centery - 35 * UI.resolution), self.player.rect.center)
             self.fire_ball_group.add(fire_ball)
             self.fire_ball_interval = current_time + 2
 
@@ -119,8 +119,8 @@ class FireBall(pygame.sprite.Sprite):
         self.fire_ball_velocity = 7 * UI.resolution
 
         # Calculate the players position
-        direction_vector = pygame.math.Vector2(player_pos) - pygame.math.Vector2(enemy_pos)
-        self.direction = direction_vector.normalize()
+        self.direction_vector = pygame.Vector2(player_pos) - pygame.Vector2(enemy_pos)
+        self.direction = self.direction_vector.normalize()
 
         # Rotate the image based on the shooting direction.
         angle = math.degrees(math.atan2(- self.direction.y, self.direction.x)) + 90
