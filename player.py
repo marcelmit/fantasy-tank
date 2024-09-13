@@ -20,7 +20,8 @@ class PlayerTank(pygame.sprite.Sprite):
         self.max_health = 200
         self.health = 150
         self.velocity = 10 * UI.resolution
-        self.rocket_ammo = 5
+        self.max_rocket_ammo = 5
+        self.rocket_ammo = 3
 
         # Player invulnerability duration after taking damage.
         self.invulnerability_duration = 2

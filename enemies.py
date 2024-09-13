@@ -18,7 +18,7 @@ class Wizard(pygame.sprite.Sprite):
 
         # Wizard stats
         self.max_health = 1000
-        self.health = 100
+        self.health = 800
 
         self.cooldown = 0
 

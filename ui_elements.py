@@ -221,13 +221,28 @@ class Battle(Menu):
         self.cloud_generator = CloudGenerator()
         self.pause_text = Text("PAUSED", (960, 540), (150, 125))
 
+    def update_stats(self):
+        self.stat_elements = [
+            Background("ui/hp_bar", (40, 60), (max(0, 500 * self.game.player.health / self.game.player.max_health), 50), hp_bar=True),
+            Background("ui/slider_blank_frame", (290, 60), (500, 70), text=f"{self.game.player.health} / {self.game.player.max_health}", text_pos=(280, 60), text_col="black"),
+            Background("player/player_tank", (40, 60), (65, 65)),
+            Background("ui/hp_bar", (1400, 60), (max(0, 500 * self.game.enemy_wizard.health / self.game.enemy_wizard.max_health), 50), hp_bar=True),
+            Background("ui/slider_blank_frame", (1630, 60), (500, 70), text=f"{self.game.enemy_wizard.health} / {self.game.enemy_wizard.max_health}", text_pos=(1630, 60), text_col="black"),
+            Background("enemies/wizard", (1395, 60), (140, 120)),
+            Background("player/player_tank_rocket", (40, 150), (50, 75)),
+            Text(f"{self.game.player.rocket_ammo} / {self.game.player.max_rocket_ammo}", (130, 150), (80, 80), text_col="black")
+        ]
+
     def update(self, game):
         self.cloud_generator.update()
+        self.update_stats()
 
     def draw(self):
         for element in self.ui_elements:
             element.draw()
         self.cloud_generator.draw()
+        for element in self.stat_elements:
+            element.draw()
         if self.game.paused:
             self.pause_text.draw()
 
@@ -252,8 +267,8 @@ class GameOver(Menu):
             game.new_game()
 
 class Text:
-    def __init__(self, text, pos, size):
-        self.original_text = UI.font.render(text, True, "white")
+    def __init__(self, text, pos, size, text_col="white"):
+        self.original_text = UI.font.render(text, True, text_col)
         self.text = pygame.transform.scale(self.original_text, (size[0] * UI.resolution, size[1] * UI.resolution))
         self.rect = self.text.get_rect(center = (pos[0] * UI.resolution, pos[1] * UI.resolution))
         
@@ -261,14 +276,16 @@ class Text:
         UI.screen.blit(self.text, self.rect)
 
 class Background:
-    def __init__(self, image, pos, size, text=None, text_pos=None):
+    def __init__(self, image, pos, size, text=None, text_pos=None, text_col="white", hp_bar=False):
         self.original_image = load_image(image)
         self.image = pygame.transform.scale(self.original_image, (size[0] * UI.resolution, size[1] * UI.resolution))
         self.rect = self.image.get_rect(center = (pos[0] * UI.resolution, pos[1] * UI.resolution))
+        if hp_bar:
+            self.rect.left = pos[0] * UI.resolution
 
         self.text = text
         if text and text_pos:
-            self.text = UI.font.render(text, True, "white")
+            self.text = UI.font.render(text, True, text_col)
             self.text_rect = self.text.get_rect(center = (text_pos[0] * UI.resolution, text_pos[1] * UI.resolution))
 
     def draw(self):

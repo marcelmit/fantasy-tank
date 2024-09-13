@@ -23,13 +23,13 @@ class Game:
         self.paused = False
         UI.init(self)
 
-        self.menu_manager = MenuManager(self)
-
         self.player = PlayerTank(self, self.screen_size)
 
         self.enemy_wizard = Wizard(self, self.screen_size, self.player)
         self.enemy_group = pygame.sprite.Group()
         self.enemy_group.add(self.enemy_wizard)
+
+        self.menu_manager = MenuManager(self)
 
     def set_resolution(self, resolution):
         resolutions = {
