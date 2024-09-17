@@ -5,49 +5,30 @@ import pygame
 from helper_functions import close_game, keyboard_input
 from player import PlayerTank
 from enemies import Wizard
-from ui_elements import UI, MenuManager
+from ui_elements import MenuManager
 
 class Game:
     def __init__(self):
         pygame.init()
         pygame.display.set_caption("Fantasy Tank")
+        self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((960, 540))
-        self.resolution = 0.5
-        #self.screen = pygame.display.set_mode((1920, 1080))
-        #self.resolution = 1
         self.screen_size = self.screen.get_size()
+        self.resolution = 0.5
+        self.font = pygame.font.SysFont("cambria", int(40 * self.resolution))
         self.sound_volume = 0.5
         self.music_volume = 0.5
-        self.clock = pygame.time.Clock()
-        self.state = "battle"
+        self.time = 0
         self.paused = False
-        UI.init(self)
+        self.state = "menu"
 
-        self.player = PlayerTank(self, self.screen_size)
-
-        self.enemy_wizard = Wizard(self, self.screen_size, self.player)
+        self.player = PlayerTank(self)
+        self.enemy_wizard = Wizard(self, self.player)
         self.enemy_group = pygame.sprite.Group()
         self.enemy_group.add(self.enemy_wizard)
-
         self.menu_manager = MenuManager(self)
 
-    def set_resolution(self, resolution):
-        resolutions = {
-            "1920x1080": 1.0,
-            "1600x900": 0.84,
-            "1280x720": 0.67,
-            "960x540": 0.5
-        }
-
-        self.resolution = resolutions[resolution]
-        width, height = map(int, resolution.split("x"))
-        self.screen = pygame.display.set_mode((width, height))
-        self.screen_size = self.screen.get_size()
-        UI.init(self)
-
     def collisions(self):
-        current_time = pygame.time.get_ticks() / 1000
-
         # Player projectiles collision
         for projectile in self.player.projectile_group:
             if pygame.sprite.spritecollideany(projectile, self.enemy_group):
@@ -59,16 +40,16 @@ class Game:
 
         # Fire ball collision
         if pygame.sprite.spritecollide(self.player, self.enemy_wizard.fire_ball_group, True):
-            if current_time - self.player.last_hit_time > self.player.invulnerability_duration:
+            if self.time - self.player.last_hit_time > self.player.invulnerability_duration:
                 self.player.decrease_health(15)
-                self.player.last_hit_time = current_time
+                self.player.last_hit_time = self.time
 
         # Fire wall collision
         for fire_wall in self.enemy_wizard.fire_wall_group:
             if pygame.sprite.spritecollideany(self.player, fire_wall.group):
-                if current_time - self.player.last_hit_time > self.player.invulnerability_duration:
+                if self.time - self.player.last_hit_time > self.player.invulnerability_duration:
                     self.player.decrease_health(10)
-                    self.player.last_hit_time = current_time
+                    self.player.last_hit_time = self.time
 
         # Fire rain collision
         for fire_rain in self.enemy_wizard.fire_rain_group:
@@ -76,15 +57,14 @@ class Game:
                 self.player.decrease_health(5)
 
     def update(self):
+        self.time = pygame.time.get_ticks() / 1000
         keyboard_input(self)
 
         if not self.paused:
             self.menu_manager.update()
-
             if self.state == "battle":
                 self.player.update()
                 self.player.projectile_group.update()
-
                 self.enemy_wizard.update()
                 self.enemy_wizard.fire_ball_group.update()
                 self.enemy_wizard.fire_wall_group.update()
@@ -95,13 +75,12 @@ class Game:
         self.menu_manager.draw()
 
         if self.state == "battle":
-            self.player.draw(self.screen)
+            self.player.draw()
             self.player.projectile_group.draw(self.screen)
-
-            self.enemy_wizard.draw(self.screen)
+            self.enemy_wizard.draw()
             self.enemy_wizard.fire_ball_group.draw(self.screen)
             for fire_wall in self.enemy_wizard.fire_wall_group:
-                fire_wall.draw(self.screen)
+                fire_wall.draw()
             self.enemy_wizard.fire_rain_group.draw(self.screen)
 
     def new_game(self):
@@ -111,11 +90,9 @@ class Game:
         self.enemy_wizard.fire_wall_group.empty()
         self.enemy_wizard.fire_rain_group.empty()
         
-        self.player = PlayerTank(self, self.screen_size)
-
-        self.enemy_wizard = Wizard(self, self.screen_size, self.player)
+        self.player = PlayerTank(self)
+        self.enemy_wizard = Wizard(self, self.player)
         self.enemy_group.add(self.enemy_wizard)
-
         self.state = "battle"
 
     def run(self):

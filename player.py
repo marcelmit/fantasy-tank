@@ -2,35 +2,34 @@ import pygame
 from pygame.locals import *
 
 from helper_functions import load_image, load_sound
-from ui_elements import UI
 
 class PlayerTank(pygame.sprite.Sprite):
-    def __init__(self, game, screen_size):
+    def __init__(self, game):
         super().__init__()
         self.game = game
-        self.screen_size = screen_size
-        self.direction = "up"
 
         self.original_image = load_image("player/player_tank")
-        self.scaled_image = pygame.transform.scale(self.original_image, (62 * UI.resolution, 76 * UI.resolution))
+        self.scaled_image = pygame.transform.scale(self.original_image, (62 * self.game.resolution, 76 * self.game.resolution))
         self.image = self.scaled_image
-        self.rect = self.scaled_image.get_rect(center = (self.screen_size[0] // 2, self.screen_size[1] // 2))
+        self.rect = self.scaled_image.get_rect(center = (self.game.screen_size[0] // 2, self.game.screen_size[1] // 2))
+
+        self.direction = "up"
 
         # Player stats
         self.max_health = 200
         self.health = 150
-        self.velocity = 10 * UI.resolution
+        self.velocity = 10 * self.game.resolution
         self.max_rocket_ammo = 5
         self.rocket_ammo = 3
 
         # Player invulnerability duration after taking damage.
-        self.invulnerability_duration = 2
+        self.invulnerability_duration = 1
         self.last_hit_time = 0
 
         # Cooldown for the shoot method.
         self.projectile_group = pygame.sprite.Group()
         self.last_shot_time = 0
-        self.shoot_delay = 500
+        self.shoot_delay = 0.5
 
     def movement(self):
         pressed_key = pygame.key.get_pressed()
@@ -49,14 +48,14 @@ class PlayerTank(pygame.sprite.Sprite):
         self.rect.move_ip(x_pos, y_pos)
 
         # Stops the player from moving off-screen.
-        if self.rect.top <= 215 * UI.resolution:
-            self.rect.top = 215 * UI.resolution
-        elif self.rect.bottom >= self.screen_size[1]:
-            self.rect.bottom = self.screen_size[1]
+        if self.rect.top <= 215 * self.game.resolution:
+            self.rect.top = 215 * self.game.resolution
+        elif self.rect.bottom >= self.game.screen_size[1]:
+            self.rect.bottom = self.game.screen_size[1]
         if self.rect.left <= 0:
             self.rect.left = 0
-        elif self.rect.right >= self.screen_size[0]:
-            self.rect.right = self.screen_size[0] - 10.5 * UI.resolution
+        elif self.rect.right >= self.game.screen_size[0]:
+            self.rect.right = self.game.screen_size[0] - 10.5 * self.game.resolution
 
         # Rotate sprite image based on movement direction and updates the direction state.
         if x_pos == 0 and y_pos < 0:
@@ -86,97 +85,97 @@ class PlayerTank(pygame.sprite.Sprite):
 
     def shoot(self):
         pressed_keys = pygame.key.get_pressed()
-        current_time = pygame.time.get_ticks()
-
         cannon_sound = load_sound("cannon")
         rocket_sound = load_sound("rocket")
         pygame.mixer.Sound.set_volume(cannon_sound, self.game.sound_volume)
         pygame.mixer.Sound.set_volume(rocket_sound, self.game.sound_volume)
 
         # Create two cannon projectiles and offset them to fit the dual cannon barrel.
-        if pressed_keys[K_SPACE] and current_time - self.last_shot_time > self.shoot_delay:
+        if pressed_keys[K_SPACE] and self.game.time - self.last_shot_time > self.shoot_delay:
             cannon_sound.play()
 
             if self.direction == "up":
-                left_cannon_projectile = PlayerProjectile(self.rect.centerx - (8 * UI.resolution), self.rect.centery - (40 * UI.resolution), self.direction)
-                right_cannon_projectile = PlayerProjectile(self.rect.centerx + (8 * UI.resolution), self.rect.centery - (40 * UI.resolution), self.direction)
+                left_cannon_projectile = PlayerProjectile(self.game, self.rect.centerx - (8 * self.game.resolution), self.rect.centery - (40 * self.game.resolution), self.direction)
+                right_cannon_projectile = PlayerProjectile(self.game, self.rect.centerx + (8 * self.game.resolution), self.rect.centery - (40 * self.game.resolution), self.direction)
             elif self.direction == "down":
-                left_cannon_projectile = PlayerProjectile(self.rect.centerx - (8 * UI.resolution), self.rect.centery + (40 * UI.resolution), self.direction)
-                right_cannon_projectile = PlayerProjectile(self.rect.centerx + (8 * UI.resolution), self.rect.centery + (40 * UI.resolution), self.direction)
+                left_cannon_projectile = PlayerProjectile(self.game, self.rect.centerx - (8 * self.game.resolution), self.rect.centery + (40 * self.game.resolution), self.direction)
+                right_cannon_projectile = PlayerProjectile(self.game, self.rect.centerx + (8 * self.game.resolution), self.rect.centery + (40 * self.game.resolution), self.direction)
             elif self.direction == "left":
-                left_cannon_projectile = PlayerProjectile(self.rect.centerx - (42 * UI.resolution), self.rect.centery - (10 * UI.resolution), self.direction)
-                right_cannon_projectile = PlayerProjectile(self.rect.centerx - (42 * UI.resolution), self.rect.centery + (6 * UI.resolution), self.direction)
+                left_cannon_projectile = PlayerProjectile(self.game, self.rect.centerx - (42 * self.game.resolution), self.rect.centery - (10 * self.game.resolution), self.direction)
+                right_cannon_projectile = PlayerProjectile(self.game, self.rect.centerx - (42 * self.game.resolution), self.rect.centery + (6 * self.game.resolution), self.direction)
             elif self.direction == "right":
-                left_cannon_projectile = PlayerProjectile(self.rect.centerx + (42 * UI.resolution), self.rect.centery - (10 * UI.resolution), self.direction)
-                right_cannon_projectile = PlayerProjectile(self.rect.centerx + (42 * UI.resolution), self.rect.centery + (6 * UI.resolution), self.direction)
+                left_cannon_projectile = PlayerProjectile(self.game, self.rect.centerx + (42 * self.game.resolution), self.rect.centery - (10 * self.game.resolution), self.direction)
+                right_cannon_projectile = PlayerProjectile(self.game, self.rect.centerx + (42 * self.game.resolution), self.rect.centery + (6 * self.game.resolution), self.direction)
             elif self.direction == "up_left":
-                left_cannon_projectile = PlayerProjectile(self.rect.centerx - (23 * UI.resolution), self.rect.centery - (15 * UI.resolution), self.direction)
-                right_cannon_projectile = PlayerProjectile(self.rect.centerx - (11 * UI.resolution), self.rect.centery - (25 * UI.resolution), self.direction)
+                left_cannon_projectile = PlayerProjectile(self.game, self.rect.centerx - (23 * self.game.resolution), self.rect.centery - (15 * self.game.resolution), self.direction)
+                right_cannon_projectile = PlayerProjectile(self.game, self.rect.centerx - (11 * self.game.resolution), self.rect.centery - (25 * self.game.resolution), self.direction)
             elif self.direction == "up_right":
-                left_cannon_projectile = PlayerProjectile(self.rect.centerx + (37 * UI.resolution), self.rect.centery - (26 * UI.resolution), self.direction)
-                right_cannon_projectile = PlayerProjectile(self.rect.centerx + (48 * UI.resolution), self.rect.centery - (14 * UI.resolution), self.direction)
+                left_cannon_projectile = PlayerProjectile(self.game, self.rect.centerx + (37 * self.game.resolution), self.rect.centery - (26 * self.game.resolution), self.direction)
+                right_cannon_projectile = PlayerProjectile(self.game, self.rect.centerx + (48 * self.game.resolution), self.rect.centery - (14 * self.game.resolution), self.direction)
             elif self.direction == "down_left":
-                left_cannon_projectile = PlayerProjectile(self.rect.centerx - (11 * UI.resolution), self.rect.centery + (45 * UI.resolution), self.direction)
-                right_cannon_projectile = PlayerProjectile(self.rect.centerx - (21 * UI.resolution), self.rect.centery + (33 * UI.resolution), self.direction)
+                left_cannon_projectile = PlayerProjectile(self.game, self.rect.centerx - (11 * self.game.resolution), self.rect.centery + (45 * self.game.resolution), self.direction)
+                right_cannon_projectile = PlayerProjectile(self.game, self.rect.centerx - (21 * self.game.resolution), self.rect.centery + (33 * self.game.resolution), self.direction)
             elif self.direction == "down_right":
-                left_cannon_projectile = PlayerProjectile(self.rect.centerx + (49 * UI.resolution), self.rect.centery + (35 * UI.resolution), self.direction)
-                right_cannon_projectile = PlayerProjectile(self.rect.centerx + (39 * UI.resolution), self.rect.centery + (46 * UI.resolution), self.direction)
+                left_cannon_projectile = PlayerProjectile(self.game, self.rect.centerx + (49 * self.game.resolution), self.rect.centery + (35 * self.game.resolution), self.direction)
+                right_cannon_projectile = PlayerProjectile(self.game, self.rect.centerx + (39 * self.game.resolution), self.rect.centery + (46 * self.game.resolution), self.direction)
 
             self.projectile_group.add(left_cannon_projectile, right_cannon_projectile)
-            self.last_shot_time = current_time
+            self.last_shot_time = self.game.time
 
         # Create a rocket projectile and reduce rocket ammo count
-        if self.rocket_ammo > 0 and pressed_keys[K_LCTRL] and current_time - self.last_shot_time > self.shoot_delay:
+        if self.rocket_ammo > 0 and pressed_keys[K_LCTRL] and self.game.time - self.last_shot_time > self.shoot_delay:
             rocket_sound.play()
             self.rocket_ammo -= 1
 
             if self.direction == "up":
-                rocket = PlayerProjectile(self.rect.centerx, self.rect.centery - (7 * UI.resolution), self.direction, is_rocket=True)
+                rocket = PlayerProjectile(self.game, self.rect.centerx, self.rect.centery - (7 * self.game.resolution), self.direction, is_rocket=True)
             elif self.direction == "down":
-                rocket = PlayerProjectile(self.rect.centerx, self.rect.centery + (5 * UI.resolution), self.direction, is_rocket=True)
+                rocket = PlayerProjectile(self.game, self.rect.centerx, self.rect.centery + (5 * self.game.resolution), self.direction, is_rocket=True)
             elif self.direction == "left":
-                rocket = PlayerProjectile(self.rect.centerx - (17 * UI.resolution), self.rect.centery + (8 * UI.resolution), self.direction, is_rocket=True)
+                rocket = PlayerProjectile(self.game, self.rect.centerx - (17 * self.game.resolution), self.rect.centery + (8 * self.game.resolution), self.direction, is_rocket=True)
             elif self.direction == "right":
-                rocket = PlayerProjectile(self.rect.centerx, self.rect.centery + (8 * UI.resolution), self.direction, is_rocket=True)
+                rocket = PlayerProjectile(self.game, self.rect.centerx, self.rect.centery + (8 * self.game.resolution), self.direction, is_rocket=True)
             elif self.direction == "up_left":
-                rocket = PlayerProjectile(self.rect.centerx - (3 * UI.resolution), self.rect.centery + (6 * UI.resolution), self.direction, is_rocket=True)
+                rocket = PlayerProjectile(self.game, self.rect.centerx - (3 * self.game.resolution), self.rect.centery + (6 * self.game.resolution), self.direction, is_rocket=True)
             elif self.direction == "down_left":
-                rocket = PlayerProjectile(self.rect.centerx - (2 * UI.resolution), self.rect.centery + (17 * UI.resolution), self.direction, is_rocket=True)
+                rocket = PlayerProjectile(self.game, self.rect.centerx - (2 * self.game.resolution), self.rect.centery + (17 * self.game.resolution), self.direction, is_rocket=True)
             elif self.direction == "up_right":
-                rocket = PlayerProjectile(self.rect.centerx + (4 * UI.resolution), self.rect.centery + (10 * UI.resolution), self.direction, is_rocket=True)
+                rocket = PlayerProjectile(self.game, self.rect.centerx + (4 * self.game.resolution), self.rect.centery + (10 * self.game.resolution), self.direction, is_rocket=True)
             elif self.direction == "down_right":
-                rocket = PlayerProjectile(self.rect.centerx + (6 * UI.resolution), self.rect.centery + (15 * UI.resolution), self.direction, is_rocket=True)
+                rocket = PlayerProjectile(self.game, self.rect.centerx + (6 * self.game.resolution), self.rect.centery + (15 * self.game.resolution), self.direction, is_rocket=True)
 
             self.projectile_group.add(rocket)
-            self.last_shot_time = current_time
+            self.last_shot_time = self.game.time
 
     def decrease_health(self, damage):
         self.health -= damage
         if self.health <= 0:
             pygame.mixer.music.unload()
             self.kill()
-            self.game.game_state = "defeat"
+            self.game.state = "defeat"
         
     def update(self):
         self.movement()
         self.shoot()
 
-    def draw(self, surface):
-        surface.blit(self.image, self.rect)
+    def draw(self):
+        self.game.screen.blit(self.image, self.rect)
 
 class PlayerProjectile(pygame.sprite.Sprite):
-    def __init__(self, x_pos, y_pos, direction, is_rocket=False):
+    def __init__(self, game, x_pos, y_pos, direction, is_rocket=False):
         super().__init__()
+        self.game = game
         self.direction = direction
-        self.velocity = 5 * UI.resolution
+        
+        self.velocity = 5 * self.game.resolution
 
         if is_rocket:
             self.original_image = load_image("player/player_tank_rocket")
-            self.scaled_image = pygame.transform.scale(self.original_image, (13 * UI.resolution, 45 * UI.resolution))
+            self.scaled_image = pygame.transform.scale(self.original_image, (13 * self.game.resolution, 45 * self.game.resolution))
             self.type = "rocket"
         else:
             self.original_image = load_image("player/player_tank_cannon")
-            self.scaled_image = pygame.transform.scale(self.original_image, (8 * UI.resolution, 18 * UI.resolution))
+            self.scaled_image = pygame.transform.scale(self.original_image, (8 * self.game.resolution, 18 * self.game.resolution))
             self.type = "cannon"
 
         self.image = self.scaled_image
@@ -212,8 +211,8 @@ class PlayerProjectile(pygame.sprite.Sprite):
         self.rect.move_ip(x_pos, y_pos)
 
         # Removes the projectile if it moves off-screen.
-        if (self.rect.x < - 100 or self.rect.x > UI.screen_size[0] + 100 or 
-            self.rect.y < - 100 or self.rect.y > UI.screen_size[1] + 100):
+        if (self.rect.x < - 100 or self.rect.x > self.game.screen_size[0] + 100 or 
+            self.rect.y < - 100 or self.rect.y > self.game.screen_size[1] + 100):
             self.kill()
 
     def update(self):
