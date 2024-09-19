@@ -113,7 +113,7 @@ class FireBall(pygame.sprite.Sprite):
     def __init__(self, game, enemy_pos, player_pos):
         super().__init__()
         self.game = game
-        
+
         self.fire_ball_velocity = 7 * self.game.resolution
 
         # Calculate the players position

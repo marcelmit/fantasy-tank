@@ -61,6 +61,33 @@ def set_resolution(game, resolution):
         game.screen_size = game.screen.get_size()
         game.font = pygame.font.SysFont("cambria", int(40 * game.resolution))
 
+def add_data(self, data):
+        if data in self.data_dict:
+            self.data_dict[data] += 1
+        else:
+            self.data_dict[data] = 1
+
+def calculate_score(score_timer, data):
+    score_timer = int(score_timer * 0.5)
+    score = 0
+
+    for k, v in data.items():
+        if k == "fire_ball":
+            score -= v * 5
+        elif k == "fire_wall":
+            score -= v * 10
+        elif k == "fire_rain":
+            score -= v * 3
+        elif k == "cannon_hit":
+            score += v * 10
+        elif k == "rocket_hit":
+            score += v * 20
+        elif k == "cannon_miss":
+            score -= v * 1
+        elif k == "rocket_miss":
+            score -= v * 10
+    return int(score - score_timer)
+
 def load_image(path):
     image = pygame.image.load(os.path.join(BASE_IMAGE_PATH + path + ".png")).convert_alpha()
     return image

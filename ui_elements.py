@@ -2,12 +2,12 @@ import random
 
 import pygame
 
-from helper_functions import load_image, load_sound, load_music, mouse_input, set_resolution
+from helper_functions import load_image, load_sound, load_music, mouse_input, set_resolution, calculate_score
 
 class MenuManager:
     def __init__(self, game):
         self.game = game
-        
+
         self.current_menu = None
         self.last_game_state = None
         
@@ -50,7 +50,7 @@ class MenuManager:
                 pygame.mixer.music.play(- 1)
 
     def update(self):
-        self.play_music()
+        #self.play_music()
 
         if self.game.state != self.last_game_state:
             self.initialize_menu()
@@ -82,8 +82,8 @@ class Menu:
         slider = Slider(image, pos, size, value_range, slider_type, self.game)
         self.sliders.append(slider)
 
-    def add_text(self, text, pos, size, text_col="white"):
-        text = Text(text, pos, size, self.game, text_col)
+    def add_text(self, text, pos, text_col="white"):
+        text = Text(text, pos, self.game, text_col)
         self.text.append(text)
 
     def update(self):
@@ -181,7 +181,7 @@ class OptionsMenu(Menu):
 
         if state == "options":
             self.add_background("ui/box_square", (1500, 540), (300, 500))
-            self.add_text("Resolution", (1500, 360), (200, 100))
+            self.add_text("Resolution", (1500, 360))
             self.add_button("ui/button_square", (1500, 455), (240, 80), text="1920x1080")
             self.add_button("ui/button_square", (1500, 545), (240, 80), text="1600x900")
             self.add_button("ui/button_square", (1500, 635), (240, 80), text="1280x720")
@@ -211,7 +211,7 @@ class Battle(Menu):
         self.add_background("ui/battle_background", (960, 650), (1920, 870))
         self.add_background("ui/sky_background", (960, 100), (1920, 230))
         self.cloud_generator = CloudGenerator(self.game)
-        self.pause_text = Text("PAUSED", (960, 540), (150, 125), self.game)
+        self.pause_text = Text("PAUSED", (960, 540), self.game, text_col="red", size=(250, 200))
 
     def update_stats(self):
         self.stat_elements = [
@@ -221,8 +221,8 @@ class Battle(Menu):
             Background("ui/hp_bar", (1400, 60), (max(0, 500 * self.game.enemy_wizard.health / self.game.enemy_wizard.max_health), 50), self.game, hp_bar=True),
             Background("ui/slider_blank_frame", (1630, 60), (500, 70), self.game, text=f"{self.game.enemy_wizard.health} / {self.game.enemy_wizard.max_health}", text_pos=(1630, 60), text_col="black"),
             Background("enemies/wizard", (1395, 60), (140, 120), self.game,),
-            Background("player/player_tank_rocket", (40, 150), (50, 75), self.game,),
-            Text(f"{self.game.player.rocket_ammo} / {self.game.player.max_rocket_ammo}", (130, 150), (80, 80), self.game, text_col="black")
+            Background("player/rocket", (40, 150), (50, 75), self.game,),
+            Text(f"{self.game.player.rocket_ammo} / {self.game.player.max_rocket_ammo}", (130, 150), self.game, text_col="black")
         ]
 
     def update(self):
@@ -241,15 +241,34 @@ class Battle(Menu):
 class GameOver(Menu):
     def __init__(self, game, state):
         super().__init__(game)
-        self.add_background("ui/box_square", (960, 540), (500, 500))
+        minutes, seconds = divmod(self.game.score_timer, 60)
 
+        self.add_background("ui/main_menu_background", (960, 540), (1920, 1080))
+        self.add_background("ui/box_square", (960, 540), (1000, 800))
         if state == "victory":
-            self.add_background("ui/box_blue_square", (960, 300), (200, 100), text="Victory", text_pos=(960, 300))
+            self.add_background("ui/box_blue_square", (960, 150), (200, 100), text="Victory", text_pos=(960, 150))
         elif state == "defeat":
-            self.add_background("ui/box_blue_square", (960, 300), (200, 100), text="Defeat", text_pos=(960, 300))
+            self.add_background("ui/box_blue_square", (960, 150), (200, 100), text="Defeat", text_pos=(960, 150))
 
-        self.add_button("ui/main_menu", (800, 710), (90, 90), text="")
-        self.add_button("ui/button_square", (1100, 720), (140, 60), text="Retry")
+        self.add_text("Hits taken", (630, 280))
+        self.add_text("Hits done", (960, 280))
+        self.add_text("Hits missed", (1290, 280))
+        self.add_text(f"Time: {int(minutes)}:{int(seconds):02}", (950, 700))
+        self.add_text(f"Score: {calculate_score(self.game.score_timer, self.game.data_dict)}", (1250, 700))
+
+        self.add_background("enemies/fire_ball", (590, 410), (150, 150), text=f"{self.game.data_dict["fire_ball"] if "fire_ball" in self.game.data_dict else 0}", text_pos=(690, 410))
+        self.add_background("enemies/fire_wall", (590, 550), (100, 100), text=f"{self.game.data_dict["fire_wall"] if "fire_wall" in self.game.data_dict else 0}", text_pos=(690, 550))
+        self.add_background("enemies/fire_rain_2", (590, 690), (100, 100), text=f"{self.game.data_dict["fire_rain"] if "fire_rain" in self.game.data_dict else 0}", text_pos=(690, 690))
+        self.add_background("enemies/fire_rain_2", (590, 820), (100, 100), text=f"{self.game.data_dict["fire_rain"] if "fire_rain" in self.game.data_dict else 0}", text_pos=(690, 820))
+
+        self.add_background("player/cannon", (920, 400), (50, 60), text=f"{self.game.data_dict["cannon_hit"] if "cannon_hit" in self.game.data_dict else 0}", text_pos=(1020, 400))
+        self.add_background("player/rocket", (920, 520), (50, 80), text=f"{self.game.data_dict["rocket_hit"] if "rocket_hit" in self.game.data_dict else 0}", text_pos=(1020, 520))
+
+        self.add_background("player/cannon", (1230, 400), (50, 60), text=f"{self.game.data_dict["cannon_miss"] if "cannon_miss" in self.game.data_dict else 0}", text_pos=(1330, 400))
+        self.add_background("player/rocket", (1230, 520), (50, 80), text=f"{self.game.data_dict["rocket_miss"] if "rocket_miss" in self.game.data_dict else 0}", text_pos=(1330, 520))
+
+        self.add_button("ui/main_menu", (1350, 850), (90, 90), text="")
+        self.add_button("ui/button_square", (960, 850), (180, 80), text="Retry")
 
     def handle_mouse_click(self, button):
         if button.original_text == "":
@@ -259,11 +278,13 @@ class GameOver(Menu):
             self.game.new_game()
 
 class Text:
-    def __init__(self, text, pos, size, game, text_col="white"):
+    def __init__(self, text, pos, game, text_col="white", size=False):
         self.game = game
 
         self.original_text = self.game.font.render(text, True, text_col)
-        self.text = pygame.transform.scale(self.original_text, (size[0] * self.game.resolution, size[1] * self.game.resolution))
+        self.text = self.original_text
+        if size:
+            self.text = pygame.transform.scale(self.original_text, (size[0] * self.game.resolution, size[1] * self.game.resolution))
         self.rect = self.text.get_rect(center = (pos[0] * self.game.resolution, pos[1] * self.game.resolution))
         
     def draw(self):

@@ -2,7 +2,7 @@ import sys
 
 import pygame
 
-from helper_functions import close_game, keyboard_input
+from helper_functions import close_game, keyboard_input, add_data
 from player import PlayerTank
 from enemies import Wizard
 from ui_elements import MenuManager
@@ -19,8 +19,10 @@ class Game:
         self.sound_volume = 0.5
         self.music_volume = 0.5
         self.time = 0
+        self.score_timer = 0
         self.paused = False
-        self.state = "menu"
+        self.state = "victory"
+        self.data_dict = {}
 
         self.player = PlayerTank(self)
         self.enemy_wizard = Wizard(self, self.player)
@@ -33,8 +35,10 @@ class Game:
         for projectile in self.player.projectile_group:
             if pygame.sprite.spritecollideany(projectile, self.enemy_group):
                 if projectile.type == "cannon":
+                    add_data(self, "cannon_hit")
                     self.enemy_wizard.decrease_health(5)
                 elif projectile.type == "rocket":
+                    add_data(self, "rocket_hit")
                     self.enemy_wizard.decrease_health(50)
                 projectile.kill()
 
@@ -43,6 +47,7 @@ class Game:
             if self.time - self.player.last_hit_time > self.player.invulnerability_duration:
                 self.player.decrease_health(15)
                 self.player.last_hit_time = self.time
+                add_data(self, "fire_ball")
 
         # Fire wall collision
         for fire_wall in self.enemy_wizard.fire_wall_group:
@@ -50,19 +55,25 @@ class Game:
                 if self.time - self.player.last_hit_time > self.player.invulnerability_duration:
                     self.player.decrease_health(10)
                     self.player.last_hit_time = self.time
+                    add_data(self, "fire_wall")
 
         # Fire rain collision
         for fire_rain in self.enemy_wizard.fire_rain_group:
             if fire_rain.has_collision and pygame.sprite.spritecollide(self.player, self.enemy_wizard.fire_rain_group, True):
                 self.player.decrease_health(5)
+                add_data(self, "fire_rain")
 
     def update(self):
         self.time = pygame.time.get_ticks() / 1000
         keyboard_input(self)
+        print(f"TIME {self.time}")
+        print(f"SCORE TIME {self.score_timer}")
+        #print(self.data_dict)
 
         if not self.paused:
             self.menu_manager.update()
             if self.state == "battle":
+                self.score_timer += self.clock.get_time() / 1000
                 self.player.update()
                 self.player.projectile_group.update()
                 self.enemy_wizard.update()
@@ -85,6 +96,9 @@ class Game:
 
     def new_game(self):
         pygame.mixer.music.unload()
+        self.score_timer = 0
+        self.data_dict = {}
+        
         self.player.projectile_group.empty()
         self.enemy_wizard.fire_ball_group.empty()
         self.enemy_wizard.fire_wall_group.empty()
@@ -93,6 +107,7 @@ class Game:
         self.player = PlayerTank(self)
         self.enemy_wizard = Wizard(self, self.player)
         self.enemy_group.add(self.enemy_wizard)
+
         self.state = "battle"
 
     def run(self):

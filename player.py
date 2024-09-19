@@ -1,7 +1,7 @@
 import pygame
 from pygame.locals import *
 
-from helper_functions import load_image, load_sound
+from helper_functions import load_image, load_sound, add_data
 
 class PlayerTank(pygame.sprite.Sprite):
     def __init__(self, game):
@@ -170,11 +170,11 @@ class PlayerProjectile(pygame.sprite.Sprite):
         self.velocity = 5 * self.game.resolution
 
         if is_rocket:
-            self.original_image = load_image("player/player_tank_rocket")
+            self.original_image = load_image("player/rocket")
             self.scaled_image = pygame.transform.scale(self.original_image, (13 * self.game.resolution, 45 * self.game.resolution))
             self.type = "rocket"
         else:
-            self.original_image = load_image("player/player_tank_cannon")
+            self.original_image = load_image("player/cannon")
             self.scaled_image = pygame.transform.scale(self.original_image, (8 * self.game.resolution, 18 * self.game.resolution))
             self.type = "cannon"
 
@@ -214,6 +214,10 @@ class PlayerProjectile(pygame.sprite.Sprite):
         if (self.rect.x < - 100 or self.rect.x > self.game.screen_size[0] + 100 or 
             self.rect.y < - 100 or self.rect.y > self.game.screen_size[1] + 100):
             self.kill()
+            if self.type == "cannon":
+                add_data(self.game, "cannon_miss")
+            elif self.type == "rocket":
+                add_data(self.game, "rocket_miss")
 
     def update(self):
         self.movement()
