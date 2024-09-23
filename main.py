@@ -18,11 +18,20 @@ class Game:
         self.font = pygame.font.SysFont("cambria", int(40 * self.resolution))
         self.sound_volume = 0.5
         self.music_volume = 0.5
-        self.time = 0
-        self.score_timer = 0
+
         self.paused = False
         self.state = "victory"
         self.data_dict = {}
+
+        # Timer
+        self.time = 0
+        self.mouse_clicked_time = 0
+        self.key_pressed_time = 0
+        self.new_game_time = 0
+        self.score_time = 0
+        self.pause_start_time = 0
+        self.pause_end_time = 0
+        self.pause_duration = 0
 
         self.player = PlayerTank(self)
         self.enemy_wizard = Wizard(self, self.player)
@@ -64,16 +73,16 @@ class Game:
                 add_data(self, "fire_rain")
 
     def update(self):
-        self.time = pygame.time.get_ticks() / 1000
         keyboard_input(self)
-        print(f"TIME {self.time}")
-        print(f"SCORE TIME {self.score_timer}")
-        #print(self.data_dict)
+        current_time = pygame.time.get_ticks() / 1000
+        self.time = current_time - self.new_game_time - self.pause_duration
 
         if not self.paused:
             self.menu_manager.update()
+            self.collisions()
+
             if self.state == "battle":
-                self.score_timer += self.clock.get_time() / 1000
+                self.score_time += self.clock.get_time() / 1000
                 self.player.update()
                 self.player.projectile_group.update()
                 self.enemy_wizard.update()
@@ -96,7 +105,10 @@ class Game:
 
     def new_game(self):
         pygame.mixer.music.unload()
-        self.score_timer = 0
+        self.new_game_time = pygame.time.get_ticks() / 1000
+        self.time = 0
+        self.score_time = 0
+        self.pause_duration = 0
         self.data_dict = {}
         
         self.player.projectile_group.empty()
@@ -117,7 +129,6 @@ class Game:
             if close_game():
                 self.running = False
 
-            self.collisions()
             self.update()
             self.draw()
 

@@ -241,7 +241,7 @@ class Battle(Menu):
 class GameOver(Menu):
     def __init__(self, game, state):
         super().__init__(game)
-        minutes, seconds = divmod(self.game.score_timer, 60)
+        minutes, seconds = divmod(self.game.score_time, 60)
 
         self.add_background("ui/main_menu_background", (960, 540), (1920, 1080))
         self.add_background("ui/box_square", (960, 540), (1000, 800))
@@ -254,7 +254,7 @@ class GameOver(Menu):
         self.add_text("Hits done", (960, 280))
         self.add_text("Hits missed", (1290, 280))
         self.add_text(f"Time: {int(minutes)}:{int(seconds):02}", (950, 700))
-        self.add_text(f"Score: {calculate_score(self.game.score_timer, self.game.data_dict)}", (1250, 700))
+        self.add_text(f"Score: {calculate_score(self.game.score_time, self.game.data_dict)}", (1250, 700))
 
         self.add_background("enemies/fire_ball", (590, 410), (150, 150), text=f"{self.game.data_dict["fire_ball"] if "fire_ball" in self.game.data_dict else 0}", text_pos=(690, 410))
         self.add_background("enemies/fire_wall", (590, 550), (100, 100), text=f"{self.game.data_dict["fire_wall"] if "fire_wall" in self.game.data_dict else 0}", text_pos=(690, 550))

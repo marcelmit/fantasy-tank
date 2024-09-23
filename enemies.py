@@ -14,7 +14,7 @@ class Wizard(pygame.sprite.Sprite):
         self.image = load_sprite_sheet("enemies/wizard_idle", frame=0, width=40, height=60, scale=3, resolution=self.game.resolution, colour=(0, 0, 0))
         self.rect = self.image.get_rect(centerx = self.game.screen_size[0] // 2)
 
-        self.cooldown = 0
+        self.global_cooldown = 0
 
         # Wizard stats
         self.max_health = 1000
@@ -23,20 +23,22 @@ class Wizard(pygame.sprite.Sprite):
         # Fire ball
         self.fire_ball_group = pygame.sprite.Group()
         self.fire_ball_interval = 2
+        self.fire_ball_last_used = 0
 
         # Fire wall
         self.fire_wall_group = pygame.sprite.Group()
-        self.fire_wall_interval = 111
-        self.fire_wall_last_shot_time = 0
+        self.fire_wall_interval = 10
+        self.fire_wall_last_used = 0
         self.fire_wall_count = 0
         self.max_fire_wall_count = 3
 
         # Fire rain
         self.fire_rain_group = pygame.sprite.Group()
-        self.fire_rain_interval = 222
-        self.fire_rain_clear = 500
-        self.fire_rain_last_clear = 500
-        self.fire_rain_collision_tiles = 500
+        self.fire_rain_interval = 25
+        self.fire_rain_last_used = 0
+        self.fire_rain_clear = float("inf")
+        self.fire_rain_last_clear = float("inf")
+        self.fire_rain_collision_tiles = float("inf")
 
         # Sprite animation
         self.animation_frame = 0
@@ -46,42 +48,47 @@ class Wizard(pygame.sprite.Sprite):
 
     def combat_logic(self):
         # Fire ball
-        if self.game.time >= self.fire_ball_interval:
+        if self.game.time >= self.global_cooldown and self.game.time > self.fire_ball_interval + self.fire_ball_last_used:
             fire_ball = FireBall(self.game, (self.rect.centerx - 30 * self.game.resolution, self.rect.centery - 35 * self.game.resolution), self.player.rect.center)
             self.fire_ball_group.add(fire_ball)
-            self.fire_ball_interval = self.game.time + 2
+            self.fire_ball_last_used = self.game.time
 
         # Fire wall
-        if self.game.time >= self.fire_wall_interval and self.fire_wall_count < self.max_fire_wall_count and self.game.time >= self.fire_wall_last_shot_time + 2:
-            self.cooldown = 500
+        if self.game.time >= self.fire_wall_interval + self.fire_wall_last_used and self.fire_wall_count < self.max_fire_wall_count:
+            self.global_cooldown = float("inf")
+            self.fire_wall_interval = 0
             fire_wall = FireWall(self.game)
             self.fire_wall_group.add(fire_wall)
             self.fire_wall_count += 1
-            self.fire_wall_last_shot_time = self.game.time
-        elif self.fire_wall_count >= self.max_fire_wall_count and self.game.time >= self.fire_wall_last_shot_time:
+            self.fire_wall_last_used = self.game.time + 2
+        elif self.fire_wall_count >= self.max_fire_wall_count and self.game.time >= self.fire_wall_last_used:
             self.fire_wall_count = 0
-            self.fire_wall_interval = self.game.time + 15
-            self.cooldown = self.game.time + 4
+            self.fire_wall_interval = 10
+            self.fire_wall_last_used = self.game.time
+            self.global_cooldown = self.game.time + 1
 
         # Fire rain
         fire_rain_spawner = FireRainSpawner(self.game, 79, self.fire_rain_group)
-        if self.game.time >= self.fire_rain_interval and self.game.time >= self.cooldown + 1:
-            self.cooldown = 500
+        if self.game.time >= self.global_cooldown and self.game.time >= self.fire_rain_interval + self.fire_rain_last_used:
+            # Fire wall cooldown if needed to not overlap.
+            if self.fire_wall_last_used - 5 <= self.game.time >= self.fire_rain_interval + self.fire_rain_last_used:
+                self.fire_wall_last_used += 5
+            self.global_cooldown = float("inf")
             fire_rain_spawner.fire_rain_tiles(has_collision=False)
             self.fire_rain_clear = self.game.time + 3
         elif self.game.time >= self.fire_rain_clear:
             self.fire_rain_group.empty()
-            self.fire_rain_clear = 500
+            self.fire_rain_clear = float("inf")
             self.fire_rain_collision_tiles = 0
         elif self.game.time >= self.fire_rain_collision_tiles:
-            self.fire_rain_collision_tiles = 500
+            self.fire_rain_collision_tiles = float("inf")
             fire_rain_spawner.fire_rain_tiles(has_collision=True)
             self.fire_rain_last_clear = self.game.time + 1.5
         elif self.game.time >= self.fire_rain_last_clear:
             self.fire_rain_group.empty()
-            self.fire_rain_last_clear = 500
-            self.fire_rain_interval = self.game.time + 15
-            self.cooldown = self.game.time
+            self.fire_rain_last_clear = float("inf")
+            self.fire_rain_last_used = self.game.time
+            self.global_cooldown = self.game.time + 1
 
     def decrease_health(self, damage):
         self.health -= damage

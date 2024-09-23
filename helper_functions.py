@@ -7,44 +7,47 @@ BASE_IMAGE_PATH = "assets/images/"
 BASE_SOUND_PATH = "assets/sounds/effects/"
 BASE_MUSIC_PATH = "assets/sounds/music/"
 
-cooldown = 0
-
 def close_game():
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             return True  
 
 def mouse_input(game):
-    global cooldown
     mouse_input = pygame.mouse.get_pressed()
+    current_time = pygame.time.get_ticks() / 1000
 
-    if mouse_input[0] and game.time > cooldown:
-        cooldown = game.time + 0.3
+    if mouse_input[0] and current_time > game.mouse_clicked_time:
+        game.mouse_clicked_time = current_time + 0.3
         return True
     return False
 
 def keyboard_input(game):
-    global cooldown
     pressed_key = pygame.key.get_pressed()
+    current_time = pygame.time.get_ticks() / 1000
 
     # Options
-    if pressed_key[K_ESCAPE] and cooldown < game.time and not game.paused:
-        if game.state == "battle":
+    if pressed_key[K_ESCAPE] and current_time > game.key_pressed_time + 0.3:
+        if game.state == "battle" and not game.paused:
+            game.pause_start_time = pygame.time.get_ticks() / 1000
             game.state = "battle_options"
-            cooldown = game.time + 0.3
         elif game.state == "battle_options":
+            game.pause_end_time = pygame.time.get_ticks() / 1000
+            game.pause_duration += (game.pause_end_time - game.pause_start_time)
             game.state = "battle"
-            cooldown = game.time + 0.3
         elif game.state == "menu":
             game.state = "options"
-            cooldown = game.time + 0.3
         elif game.state == "options":
             game.state = "menu"
-            cooldown = game.time + 0.3
+        game.key_pressed_time = pygame.time.get_ticks() / 1000
 
     # Pause
-    if pressed_key[K_p] and cooldown < game.time and game.state == "battle":
-        cooldown = game.time + 0.3
+    if pressed_key[K_p] and current_time > game.key_pressed_time + 0.3 and game.state == "battle":
+        if not game.paused:
+            game.pause_start_time = pygame.time.get_ticks() / 1000
+        else:
+            game.pause_end_time = pygame.time.get_ticks() / 1000
+            game.pause_duration += (game.pause_end_time - game.pause_start_time)
+        game.key_pressed_time = pygame.time.get_ticks() / 1000
         game.paused = not game.paused
 
 def set_resolution(game, resolution):
