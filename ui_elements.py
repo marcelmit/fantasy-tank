@@ -244,31 +244,32 @@ class GameOver(Menu):
         minutes, seconds = divmod(self.game.score_time, 60)
 
         self.add_background("ui/main_menu_background", (960, 540), (1920, 1080))
-        self.add_background("ui/box_square", (960, 540), (1000, 800))
+        self.add_background("ui/box_square", (960, 540), (1000, 900))
         if state == "victory":
-            self.add_background("ui/box_blue_square", (960, 150), (200, 100), text="Victory", text_pos=(960, 150))
+            self.add_background("ui/box_blue_square", (960, 100), (200, 100), text="Victory", text_pos=(960, 100))
         elif state == "defeat":
-            self.add_background("ui/box_blue_square", (960, 150), (200, 100), text="Defeat", text_pos=(960, 150))
+            self.add_background("ui/box_blue_square", (960, 100), (200, 100), text="Defeat", text_pos=(960, 100))
 
-        self.add_text("Hits taken", (630, 280))
-        self.add_text("Hits done", (960, 280))
-        self.add_text("Hits missed", (1290, 280))
-        self.add_text(f"Time: {int(minutes)}:{int(seconds):02}", (950, 700))
-        self.add_text(f"Score: {calculate_score(self.game.score_time, self.game.data_dict)}", (1250, 700))
+        self.add_text("Hits taken", (630, 230))
+        self.add_text("Hits done", (960, 230))
+        self.add_text("Hits missed", (1290, 230))
+        self.add_text(f"Time: {int(minutes)}:{int(seconds):02}", (950, 780))
+        self.add_text(f"Score: {calculate_score(self.game.score_time, self.game.data_dict)}", (1250, 780))
 
-        self.add_background("enemies/fire_ball", (590, 410), (150, 150), text=f"{self.game.data_dict["fire_ball"] if "fire_ball" in self.game.data_dict else 0}", text_pos=(690, 410))
-        self.add_background("enemies/fire_wall", (590, 550), (100, 100), text=f"{self.game.data_dict["fire_wall"] if "fire_wall" in self.game.data_dict else 0}", text_pos=(690, 550))
-        self.add_background("enemies/fire_rain_2", (590, 690), (100, 100), text=f"{self.game.data_dict["fire_rain"] if "fire_rain" in self.game.data_dict else 0}", text_pos=(690, 690))
-        self.add_background("enemies/fire_rain_2", (590, 820), (100, 100), text=f"{self.game.data_dict["fire_rain"] if "fire_rain" in self.game.data_dict else 0}", text_pos=(690, 820))
+        self.add_background("enemies/fire_ball", (590, 320), (80, 110), text=f"{self.game.data_dict["fire_ball"] if "fire_ball" in self.game.data_dict else 0}", text_pos=(690, 320))
+        self.add_background("enemies/fire_wall", (590, 460), (100, 100), text=f"{self.game.data_dict["fire_wall"] if "fire_wall" in self.game.data_dict else 0}", text_pos=(690, 460))
+        self.add_background("enemies/fire_rain_2", (590, 600), (100, 100), text=f"{self.game.data_dict["fire_rain"] if "fire_rain" in self.game.data_dict else 0}", text_pos=(690, 600))
+        self.add_background("enemies/fire_beam", (590, 745), (100, 100), text=f"{self.game.data_dict["fire_beam"] if "fire_beam" in self.game.data_dict else 0}", text_pos=(690, 745))
+        self.add_background("enemies/fire_patch", (590, 880), (100, 100), text=f"{self.game.data_dict["fire_patch"] if "fire_patch" in self.game.data_dict else 0}", text_pos=(690, 880))
 
-        self.add_background("player/cannon", (920, 400), (50, 60), text=f"{self.game.data_dict["cannon_hit"] if "cannon_hit" in self.game.data_dict else 0}", text_pos=(1020, 400))
-        self.add_background("player/rocket", (920, 520), (50, 80), text=f"{self.game.data_dict["rocket_hit"] if "rocket_hit" in self.game.data_dict else 0}", text_pos=(1020, 520))
+        self.add_background("player/cannon", (920, 320), (50, 60), text=f"{self.game.data_dict["cannon_hit"] if "cannon_hit" in self.game.data_dict else 0}", text_pos=(1020, 320))
+        self.add_background("player/rocket", (920, 460), (50, 80), text=f"{self.game.data_dict["rocket_hit"] if "rocket_hit" in self.game.data_dict else 0}", text_pos=(1020, 460))
 
-        self.add_background("player/cannon", (1230, 400), (50, 60), text=f"{self.game.data_dict["cannon_miss"] if "cannon_miss" in self.game.data_dict else 0}", text_pos=(1330, 400))
-        self.add_background("player/rocket", (1230, 520), (50, 80), text=f"{self.game.data_dict["rocket_miss"] if "rocket_miss" in self.game.data_dict else 0}", text_pos=(1330, 520))
+        self.add_background("player/cannon", (1230, 320), (50, 60), text=f"{self.game.data_dict["cannon_miss"] if "cannon_miss" in self.game.data_dict else 0}", text_pos=(1330, 320))
+        self.add_background("player/rocket", (1230, 460), (50, 80), text=f"{self.game.data_dict["rocket_miss"] if "rocket_miss" in self.game.data_dict else 0}", text_pos=(1330, 460))
 
-        self.add_button("ui/main_menu", (1350, 850), (90, 90), text="")
-        self.add_button("ui/button_square", (960, 850), (180, 80), text="Retry")
+        self.add_button("ui/main_menu", (1350, 900), (90, 90), text="")
+        self.add_button("ui/button_square", (960, 900), (180, 80), text="Retry")
 
     def handle_mouse_click(self, button):
         if button.original_text == "":

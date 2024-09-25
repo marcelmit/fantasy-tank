@@ -81,6 +81,10 @@ def calculate_score(score_timer, data):
             score -= v * 10
         elif k == "fire_rain":
             score -= v * 3
+        elif k == "fire_beam":
+            score -= v * 5
+        elif k == "fire_patch":
+            score -= v * 3
         elif k == "cannon_hit":
             score += v * 10
         elif k == "rocket_hit":
