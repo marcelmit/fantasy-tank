@@ -208,7 +208,7 @@ class OptionsMenu(Menu):
 class Battle(Menu):
     def __init__(self, game):
         super().__init__(game)
-        self.add_background("ui/battle_background", (960, 650), (1920, 870))
+        self.add_background("ui/battle_background", (960, 650), (1920, 880))
         self.add_background("ui/sky_background", (960, 100), (1920, 230))
         self.cloud_generator = CloudGenerator(self.game)
         self.pause_text = Text("PAUSED", (960, 540), self.game, text_col="red", size=(250, 200))
@@ -218,7 +218,7 @@ class Battle(Menu):
             Background("ui/hp_bar", (40, 60), (max(0, 500 * self.game.player.health / self.game.player.max_health), 50), self.game, hp_bar=True),
             Background("ui/slider_blank_frame", (290, 60), (500, 70), self.game, text=f"{self.game.player.health} / {self.game.player.max_health}", text_pos=(280, 60), text_col="black"),
             Background("player/player_tank", (40, 60), (65, 65), self.game),
-            Background("ui/hp_bar", (1400, 60), (max(0, 500 * self.game.enemy_wizard.health / self.game.enemy_wizard.max_health), 50), self.game, hp_bar=True),
+            Background("ui/hp_bar", (1400, 60), (max(0, 480 * self.game.enemy_wizard.health / self.game.enemy_wizard.max_health), 50), self.game, hp_bar=True),
             Background("ui/slider_blank_frame", (1630, 60), (500, 70), self.game, text=f"{self.game.enemy_wizard.health} / {self.game.enemy_wizard.max_health}", text_pos=(1630, 60), text_col="black"),
             Background("enemies/wizard", (1395, 60), (140, 120), self.game,),
             Background("player/rocket", (40, 150), (50, 75), self.game,),
@@ -253,8 +253,10 @@ class GameOver(Menu):
         self.add_text("Hits taken", (630, 230))
         self.add_text("Hits done", (960, 230))
         self.add_text("Hits missed", (1290, 230))
+        self.add_text("Health", (960, 560))
+        self.add_text("Ammo", (1270, 560))
         self.add_text(f"Time: {int(minutes)}:{int(seconds):02}", (950, 780))
-        self.add_text(f"Score: {calculate_score(self.game.score_time, self.game.data_dict)}", (1250, 780))
+        self.add_text(f"Score: {calculate_score(self.game.score_time, self.game.data_dict)}", (1250, 780), text_col="green")
 
         self.add_background("enemies/fire_ball", (590, 320), (80, 110), text=f"{self.game.data_dict["fire_ball"] if "fire_ball" in self.game.data_dict else 0}", text_pos=(690, 320))
         self.add_background("enemies/fire_wall", (590, 460), (100, 100), text=f"{self.game.data_dict["fire_wall"] if "fire_wall" in self.game.data_dict else 0}", text_pos=(690, 460))
@@ -267,6 +269,9 @@ class GameOver(Menu):
 
         self.add_background("player/cannon", (1230, 320), (50, 60), text=f"{self.game.data_dict["cannon_miss"] if "cannon_miss" in self.game.data_dict else 0}", text_pos=(1330, 320))
         self.add_background("player/rocket", (1230, 460), (50, 80), text=f"{self.game.data_dict["rocket_miss"] if "rocket_miss" in self.game.data_dict else 0}", text_pos=(1330, 460))
+
+        self.add_background("player/health_crate", (920, 660), (90, 90), text=f"{self.game.data_dict["health"] if "health" in self.game.data_dict else 0}", text_pos=(1020, 660))
+        self.add_background("player/ammo_crate", (1230, 660), (90, 90), text=f"{self.game.data_dict["ammo"] if "ammo" in self.game.data_dict else 0}", text_pos=(1330, 660))
 
         self.add_button("ui/main_menu", (1350, 900), (90, 90), text="")
         self.add_button("ui/button_square", (960, 900), (180, 80), text="Retry")

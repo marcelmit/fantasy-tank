@@ -18,7 +18,7 @@ class Wizard(pygame.sprite.Sprite):
 
         # Wizard stats
         self.max_health = 1000
-        self.health = 600
+        self.health = 1000
 
         # Fire ball
         self.fire_ball_group = pygame.sprite.Group()
@@ -162,7 +162,7 @@ class FireBall(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center = self.enemy_pos)
 
     def update(self):
-        self.enemy_pos += self.direction * self.velocity
+        self.enemy_pos += self.direction * int(self.velocity)
         self.rect.center = self.enemy_pos
 
         if (self.rect.x < - 100 or self.rect.x > self.game.screen_size[0] + 100 or
@@ -200,7 +200,7 @@ class FireWall(pygame.sprite.Sprite):
 
     def update(self):
         for _, wall_element_rect in self.wall_elements:
-            wall_element_rect.y += self.fire_wall_velocity
+            wall_element_rect.y += int(self.fire_wall_velocity)
 
         if wall_element_rect.y < - 100 or wall_element_rect.y > self.game.screen_size[1] + 100:
             self.kill()
@@ -293,7 +293,7 @@ class FireBeam(pygame.sprite.Sprite):
         direction = player_pos - self.enemy_pos
         direction = direction.normalize()
 
-        self.enemy_pos += direction * self.velocity
+        self.enemy_pos += direction * int(self.velocity)
         self.rect.center = self.enemy_pos
 
     def draw(self):
