@@ -2,7 +2,7 @@ import sys
 
 import pygame
 
-from helper_functions import close_game, keyboard_input, add_data
+from helper_functions import close_game, keyboard_input, add_data, load_sound
 from player import PlayerTank
 from enemies import Wizard
 from ui_elements import MenuManager
@@ -40,6 +40,9 @@ class Game:
         self.menu_manager = MenuManager(self)
 
     def collisions(self):
+        fire_impact_sound = load_sound(self, "fire_impact")
+        crate_pickup_sound = load_sound(self, "crate_pickup")
+
         # Player projectiles
         for projectile in self.player.projectile_group:
             if pygame.sprite.spritecollideany(projectile, self.enemy_group):
@@ -55,11 +58,13 @@ class Game:
         for crate in self.player.crate_group:
             if pygame.sprite.spritecollide(self.player, self.player.crate_group, True):
                 if crate.random_crate == "health":
+                    crate_pickup_sound.play()
                     add_data(self, "health")
                     self.player.health += 25
                     if self.player.health > 200:
                         self.player.health = 200
                 elif crate.random_crate == "ammo":
+                    crate_pickup_sound.play()
                     add_data(self, "ammo")
                     self.player.rocket_ammo += 5
                     if self.player.rocket_ammo > 20:
@@ -70,12 +75,14 @@ class Game:
             if self.time - self.player.last_hit_time > self.player.invulnerability_duration:
                 self.player.decrease_health(15)
                 self.player.last_hit_time = self.time
+                fire_impact_sound.play()
                 add_data(self, "fire_ball")
 
         # Fire wall
         for fire_wall in self.enemy_wizard.fire_wall_group:
             if pygame.sprite.spritecollideany(self.player, fire_wall.group):
                 if self.time - self.player.last_hit_time > self.player.invulnerability_duration:
+                    fire_impact_sound.play()
                     add_data(self, "fire_wall")
                     self.player.decrease_health(10)
                     self.player.last_hit_time = self.time
@@ -83,18 +90,21 @@ class Game:
         # Fire rain
         for fire_rain in self.enemy_wizard.fire_rain_group:
             if fire_rain.has_collision and pygame.sprite.spritecollide(self.player, self.enemy_wizard.fire_rain_group, True):
+                fire_impact_sound.play()
                 add_data(self, "fire_rain")
                 self.player.decrease_health(5)
 
         # Fire beam
         if pygame.sprite.spritecollideany(self.player, self.enemy_wizard.fire_beam_group):
             if self.time - self.player.last_hit_time > self.player.invulnerability_duration:
+                fire_impact_sound.play()
                 add_data(self, "fire_beam")
                 self.player.decrease_health(10)
                 self.player.last_hit_time = self.time
 
         # Fire patch
         if pygame.sprite.spritecollide(self.player, self.enemy_wizard.fire_patch_group, True):
+            fire_impact_sound.play()
             add_data(self, "fire_patch")
             self.player.decrease_health(5)
 
@@ -110,13 +120,13 @@ class Game:
                 self.score_time += self.clock.get_time() / 1000
                 self.player.update()
                 self.player.projectile_group.update()
+                self.player.air_drop_group.update()
                 self.enemy_wizard.update()
                 self.enemy_wizard.fire_ball_group.update()
                 self.enemy_wizard.fire_wall_group.update()
                 self.enemy_wizard.fire_rain_group.update()
                 self.enemy_wizard.fire_beam_group.update()
                 self.enemy_wizard.fire_patch_group.update()
-                self.player.air_drop_group.update()
 
     def draw(self):
         self.screen.fill((255, 255, 255))
@@ -144,6 +154,7 @@ class Game:
         self.data_dict = {}
         
         self.player.projectile_group.empty()
+        self.player.air_drop_group.empty()
         self.player.crate_group.empty()
         self.enemy_wizard.fire_ball_group.empty()
         self.enemy_wizard.fire_wall_group.empty()

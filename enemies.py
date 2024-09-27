@@ -178,36 +178,38 @@ class FireWall(pygame.sprite.Sprite):
         self.game = game
         self.enemy = enemy
 
+        self.fire_wall_elements = []
         self.group = pygame.sprite.Group()
-        self.wall_elements = []
-        self.wall_element_width = 79 * self.game.resolution
-        self.fire_wall_velocity = 6.8 * self.game.resolution if self.enemy.health < 500 else 5 * self.game.resolution
+
+        self.size = (40 * self.game.resolution, 70 * self.game.resolution)
+        self.velocity = 6.8 * self.game.resolution if self.enemy.health < 500 else 5 * self.game.resolution
+        self.fire_wall_gap_width = 82 * self.game.resolution
 
         # Create random gaps towards the center of the wall.
-        empty_gaps_list = list(range(5, 20))
+        empty_gaps_list = list(range(5 , 20))
         empty_gaps = random.sample(empty_gaps_list, k=4)
 
         for i in range(25):
             if i in empty_gaps:
                 continue
             else:
-                wall_element = pygame.sprite.Sprite()
-                wall_element.image = load_image("enemies/fire_wall")
-                wall_element.rect = wall_element.image.get_rect(topleft = (0 + i * self.wall_element_width, 0))
+                fire_wall_element = pygame.sprite.Sprite()
+                fire_wall_element.original_image = load_image("enemies/fire_wall")
+                fire_wall_element.image = pygame.transform.scale(fire_wall_element.original_image, self.size)
+                fire_wall_element.rect = fire_wall_element.image.get_rect(topleft = (0 + i * self.fire_wall_gap_width, 0))
 
-                self.wall_elements.append((wall_element.image, wall_element.rect))
-                self.group.add(wall_element)
+                self.fire_wall_elements.append((fire_wall_element.image, fire_wall_element.rect))
+                self.group.add(fire_wall_element)
 
     def update(self):
-        for _, wall_element_rect in self.wall_elements:
-            wall_element_rect.y += int(self.fire_wall_velocity)
-
-        if wall_element_rect.y < - 100 or wall_element_rect.y > self.game.screen_size[1] + 100:
-            self.kill()
+        for _, fire_wall_element_rect in self.fire_wall_elements:
+            fire_wall_element_rect.y += self.velocity
+            if fire_wall_element_rect.y > self.game.screen_size[1] + 100:
+                self.kill()
         
     def draw(self):
-        for wall_element_image, wall_element_rect in self.wall_elements:
-            self.game.screen.blit(wall_element_image, wall_element_rect)
+        for fire_wall_element_image, fire_wall_element_rect in self.fire_wall_elements:
+            self.game.screen.blit(fire_wall_element_image, fire_wall_element_rect)
 
 class FireRain(pygame.sprite.Sprite):
     def __init__(self, game, pos, image, has_collision=False):

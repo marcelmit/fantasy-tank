@@ -50,7 +50,7 @@ class MenuManager:
                 pygame.mixer.music.play(- 1)
 
     def update(self):
-        #self.play_music()
+        self.play_music()
 
         if self.game.state != self.last_game_state:
             self.initialize_menu()
@@ -210,7 +210,7 @@ class Battle(Menu):
         super().__init__(game)
         self.add_background("ui/battle_background", (960, 650), (1920, 880))
         self.add_background("ui/sky_background", (960, 100), (1920, 230))
-        self.cloud_generator = CloudGenerator(self.game)
+        self.cloud_generator = CloudSpawner(self.game)
         self.pause_text = Text("PAUSED", (960, 540), self.game, text_col="red", size=(250, 200))
 
     def update_stats(self):
@@ -320,7 +320,7 @@ class Button:
     def __init__(self, image, pos, size, game, text=None):
         self.game = game
 
-        self.click_sound = load_sound("click_sound")
+        self.click_sound = load_sound(self.game, "click_sound")
         self.original_image = load_image(image)
         self.image = pygame.transform.scale(self.original_image, (size[0] * self.game.resolution, size[1] * self.game.resolution))
         self.rect = self.image.get_rect(center = (pos[0] * self.game.resolution, pos[1] * self.game.resolution))
@@ -335,7 +335,6 @@ class Button:
 
         # Mouse clicked
         if self.rect.collidepoint(mouse_pos) and mouse_input(self.game):
-            pygame.mixer.Sound.set_volume(self.click_sound, self.game.sound_volume)
             self.click_sound.play()
             return True
         
@@ -356,7 +355,7 @@ class Slider:
         self.slider_type = slider_type
         self.game = game
 
-        self.click_sound = load_sound("click_sound")
+        self.click_sound = load_sound(self.game, "click_sound")
         self.original_image = load_image(image)
         self.image = pygame.transform.scale(self.original_image, (size[0] * self.game.resolution, size[1] * self.game.resolution))
         self.rect = self.image.get_rect(center = (pos[0] * self.game.resolution, pos[1] * self.game.resolution))
@@ -416,7 +415,7 @@ class Cloud:
     def draw(self):
         self.game.screen.blit(self.image, self.rect)
 
-class CloudGenerator:
+class CloudSpawner:
     def __init__(self, game):
         self.game = game
 

@@ -1,11 +1,11 @@
-import os
+from pathlib import Path
 
 import pygame
 from pygame.locals import *
 
-BASE_IMAGE_PATH = "assets/images/"
-BASE_SOUND_PATH = "assets/sounds/effects/"
-BASE_MUSIC_PATH = "assets/sounds/music/"
+BASE_IMAGE_PATH = Path("assets/images/")
+BASE_SOUND_PATH = Path("assets/sounds/effects/")
+BASE_MUSIC_PATH = Path("assets/sounds/music/")
 
 def close_game():
     for event in pygame.event.get():
@@ -96,19 +96,20 @@ def calculate_score(score_timer, data):
     return int(score - score_timer)
 
 def load_image(path):
-    image = pygame.image.load(os.path.join(BASE_IMAGE_PATH + path + ".png")).convert_alpha()
+    image = pygame.image.load(BASE_IMAGE_PATH / f"{path}.png").convert_alpha()
     return image
 
-def load_sound(path):
-    sound = pygame.mixer.Sound(os.path.join(BASE_SOUND_PATH + path + ".wav"))
+def load_sound(game, path):
+    sound = pygame.mixer.Sound(BASE_SOUND_PATH / f"{path}.wav")
+    sound.set_volume(game.sound_volume)
     return sound
 
 def load_music(path):
-    music = pygame.mixer.music.load(os.path.join(BASE_MUSIC_PATH + path + ".wav"))
+    music = pygame.mixer.music.load(BASE_MUSIC_PATH / f"{path}.wav")
     return music
 
 def load_sprite_sheet(path, frame, width, height, scale, resolution, colour):
-    original_image = pygame.image.load(os.path.join(BASE_IMAGE_PATH + path + ".png")).convert_alpha()
+    original_image = pygame.image.load(BASE_IMAGE_PATH / f"{path}.png").convert_alpha()
     frame_image = pygame.Surface((width, height)).convert_alpha()
     frame_image.blit(original_image, (0, 0), ((frame * width), 0, width, height))
     scaled_image = pygame.transform.scale(frame_image, (width * scale * resolution, height * scale * resolution))
