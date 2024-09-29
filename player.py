@@ -63,7 +63,7 @@ class PlayerTank(pygame.sprite.Sprite):
         if self.rect.left <= 0:
             self.rect.left = 0
         elif self.rect.right >= self.game.screen_size[0]:
-            self.rect.right = self.game.screen_size[0] - 10.5 * self.game.resolution
+            self.rect.right = self.game.screen_size[0]
 
         # Rotate sprite image based on movement direction and updates the direction state.
         if x_pos == 0 and y_pos < 0:
